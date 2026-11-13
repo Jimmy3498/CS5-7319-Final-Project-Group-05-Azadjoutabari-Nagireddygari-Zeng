@@ -545,3 +545,147 @@ path remain unfinished. The residual risk is that analytics and milestone projec
 after a reporting failure, with no demonstrated mechanism to catch up after restart. Potential
 mitigations include keeping reporting outside the response-critical path, durable pending notices,
 idempotent reporting updates, projection-freshness indicators and an implemented catch-up process.
+
+## Cross-Experiment Risk Analysis and Final Assessment
+
+### Overall summary
+
+The four experiments evaluate different failure and delay mechanisms in the two architectural
+implementations. E1 and E2 exercise the real Event-Based queue connector. L1 and L2 exercise the real
+Layered gateway and application coordinator with deterministic substitutes for unfinished services.
+Together, they show that both designs preserve some intended structural properties while exposing
+different operational risks.
+
+| Experiment | Architecture and concern | Principal observed evidence | Risk demonstrated |
+|---|---|---|---|
+| E1 | Event-Based: single-worker queue | A 0.5 s handler limited service to 1.998 events/s; p95 queue wait reached 9.009 s for a 20-event burst | Head-of-line blocking, latency amplification and backlog growth |
+| E2 | Event-Based: controlled shutdown | 10 queued events produced 0 dispatches, 10 shutdown discards and 0 restorations in a fresh bus | Pending work is nondurable under the current queue lifecycle |
+| L1 | Layered: two synchronous AI stages | A 6 s delay in each AI call produced a 12.001 s median `submit()` response | Sequential external-service latency is passed directly to the caller |
+| L2 | Layered: synchronous reporting | A 2 s reporting delay added 2.001 s to median response; 10/10 reporting failures preserved one commit and returned `reporting_pending=True` | Reporting adds critical-path latency; immediate failure is isolated, but recovery is unproved |
+
+All four experiment harnesses passed their correctness assertions. That result means the measurements
+are internally accounted for: messages and trials were unique, expected calls occurred, ordering was
+checked and no result was fabricated. Passing the harnesses does not mean the measured architectural
+behavior is risk-free. In several cases the risk is precisely the behavior that the passing test
+reproduced.
+
+### Event-Based architecture findings
+
+E1 confirms that the current Event-Based connector decouples publication from handler execution, but
+all handling still depends on one sequential worker. When service time is nontrivial, later independent
+events wait behind earlier ones. The measured 0.5-second handler created approximately 9 seconds of p95
+queue wait and approximately 10 seconds of total burst time. If sustained arrival exceeds the worker's
+service rate, the unbounded queue has no mechanism to stop backlog growth.
+
+E2 confirms what happens if that backlog is still present during controlled shutdown. The current
+`close()` implementation removes queued messages and reports them through the shutdown callback, but it
+does not persist or transfer them. A new bus begins empty. Error notification provides useful local
+accounting, but it is not recovery.
+
+These results form a compound risk chain:
+
+```text
+slow handler or traffic burst
+    -> single-worker backlog
+    -> longer period with pending in-memory work
+    -> shutdown while work is pending
+    -> queued messages discarded without restoration
+```
+
+E1 does not prove that E2 will occur, and E2 is not a crash test. However, E1 increases the duration and
+quantity of pending work that would be exposed to E2's lifecycle behavior. The combined evidence makes
+queue scheduling, shutdown admission and message durability higher priorities than either experiment
+would suggest in isolation.
+
+The risks are specific to the project's current connector choices, not to Event-Based architecture in
+general. Event-driven systems can use multiple workers, partitioning, bounded queues, backpressure,
+durable brokers, acknowledgements, transactional outboxes and redelivery. Adding those mechanisms would
+also introduce ordering, idempotency, session-serialization and operational complexity that the current
+implementation does not yet address.
+
+### Layered architecture findings
+
+L1 confirms the cost of explicit synchronous coordination. The ordered gameplay path is easy to trace,
+but the player-facing call waits for both AI stages. Across 50 trials, response time closely followed the
+sum of planning and narration delays. The coordinator added very little overhead; the risk comes from
+placing two variable-latency external operations sequentially on the critical path.
+
+L2 shows that reporting is also on that synchronous path, even though it runs after gameplay commitment.
+A 0.5-second reporting delay added approximately 0.5 seconds to the gateway response, and a 2-second
+delay added approximately 2 seconds. If AI and reporting are both slow during one real operation, their
+latencies would be encountered sequentially according to the coordinator code. The experiments did not
+run those delays together, so this report does not claim a measured combined value.
+
+L2 also demonstrates an important strength: the coordinator's post-commit exception boundary prevented
+reporting failure from being mislabeled as gameplay failure. All ten injected reporting failures returned
+completed gameplay results, set `reporting_pending=True`, preserved the synthetic state record and did
+not repeat the commit. This reduces immediate failure coupling between gameplay and analytics.
+
+The remaining reliability concern is recovery rather than immediate isolation. A pending flag informs
+the caller that reporting is behind, but `ReportingService.catch_up()`, durable pending notices and the
+repository implementations are unfinished. The current evidence therefore supports the claim that the
+control flow preserves an accepted synthetic result; it does not support a claim that reporting will
+eventually recover after restart.
+
+### Comparative risk view
+
+| Dimension | Current Event-Based design | Current Layered design |
+|---|---|---|
+| Request behavior | Publication can return before handling, but work waits on one worker | Caller remains inside the complete ordered workflow |
+| Slow external work | Can block all later events on the worker and grow the queue | Directly increases the initiating caller's response time |
+| Failure visibility | Shutdown callback identifies discarded queued work | Gateway returns a completed result with reporting marked pending |
+| Durability demonstrated | None for the in-memory queue; fresh bus restored 0 events | None for fake commits; SQLite repositories remain unfinished |
+| Recovery demonstrated | No; `CompletionRecovery.recover()` is unfinished | No; `ReportingService.catch_up()` is unfinished |
+| Current strength | Indirect publication and subscriber failure isolation | Explicit sequencing and post-commit reporting-failure isolation |
+| Principal current risk | Backlog plus nondurable pending events | Accumulated synchronous latency plus stale reporting after failure |
+
+The experiments do not establish that one architecture is universally superior. They used different
+controlled scenarios and did not run functionally equivalent completed gameplay implementations under
+the same workload. They do show the practical tradeoff anticipated by the project proposal: the Layered
+style makes ordering and failure boundaries explicit but exposes callers to sequential latency, while the
+Event-Based style can separate submission from processing but requires deliberate queue capacity,
+durability, recovery and concurrency policies.
+
+### Risk priority and recommended actions
+
+The following priorities follow from the observed consequences rather than from an attempt to redesign
+the project inside the experiments.
+
+1. **Define measurable service objectives and operational metrics.** Record queue depth, queue wait,
+   provider latency, reporting lag, operation age and incomplete-operation counts. Without thresholds,
+   the system can observe delay but cannot determine when to reject, shed or escalate work.
+2. **Make admitted work and post-commit notices durable.** Implement durable request receipts, pending
+   completion notices, consumer acknowledgements and restart recovery before claiming reliable delivery.
+   Recovery must redeliver committed notifications without automatically replaying paid AI requests.
+3. **Choose and test an Event-Based capacity policy.** Consider bounded admission, backpressure,
+   workload-specific queues or carefully partitioned workers. Preserve per-session ordering and verify
+   idempotency before adding concurrency.
+4. **Keep reporting outside the player-critical path where practical.** The L2 failure boundary already
+   treats reporting as secondary to committed gameplay. Background processing should retain that
+   semantic separation while adding durable notification and projection-freshness handling.
+5. **Bound Layered external-call latency.** Apply explicit provider deadlines, cancellation and visible
+   operation status. If long-running turns become asynchronous, retain the Layered workflow's validation,
+   commit ordering and explicit retry rules.
+6. **Implement and test recovery paths.** Complete `CompletionRecovery.recover()` and
+   `ReportingService.catch_up()`, then inject interruption after commit and verify eventual delivery,
+   deduplication and zero repeated provider calls.
+7. **Repeat the experiments after business implementation.** Use the same campaign, commands, scripted
+   provider responses and persistence semantics through both gateways. This is required before drawing
+   end-to-end performance or architecture-selection conclusions.
+
+### Final thought
+
+The experiments reveal risks rather than defects in the architectural styles themselves. The most
+significant Event-Based exposure is the combination of a single unbounded worker queue and no durable
+recovery: slow work can accumulate, and pending work is discarded during the tested controlled shutdown.
+The most significant Layered exposure is cumulative synchronous latency: planning, narration and
+reporting all delay the caller in their defined order. The Layered coordinator does, however, already
+contain a useful reliability boundary that prevents reporting failure from reversing or falsely failing
+an accepted synthetic turn.
+
+At the current scaffold stage, the evidence favors strengthening both implementations rather than
+declaring a winner. The Event-Based version needs explicit capacity, durability and recovery semantics.
+The Layered version needs latency bounds and removal of secondary reporting work from the response path,
+while preserving its clear commit-before-reporting rule. Final architectural judgment should be deferred
+until the repositories, AI adapter, gameplay validation and recovery mechanisms are implemented and the
+same end-to-end scenarios can be run through both systems.
