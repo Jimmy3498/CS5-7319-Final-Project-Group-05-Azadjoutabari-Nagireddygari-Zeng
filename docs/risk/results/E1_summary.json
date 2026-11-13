@@ -1,0 +1,358 @@
+{
+  "experiment_id": "E1",
+  "scope": "synthetic connector-level experiment; not end-to-end gameplay throughput",
+  "generated_at_utc": "2026-11-13T19:56:16.573759+00:00",
+  "environment": {
+    "python_version": "3.12.4",
+    "python_implementation": "CPython",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git": {
+      "commit_sha": "1bd8790ae29a01007c55b41dc3ef76c396b065df",
+      "working_tree_dirty": true,
+      "metadata_error": null
+    },
+    "experiment_script_sha256": "1b9018681ca2d32397c9278ab06b8b0dbf75eb92d817b3d5e2fc2e1e6a5e2015"
+  },
+  "configuration": {
+    "event_topic": "turn.context_prepared",
+    "event_count_per_repetition": 20,
+    "processing_delays_seconds": [
+      0.0,
+      0.5
+    ],
+    "repetitions_per_condition": 3,
+    "worker_count": 1,
+    "clock": "time.perf_counter_ns",
+    "queue_depth": "maximum observed Queue.qsize; excludes in-flight work",
+    "timeout_policy": "max(5, event_count * delay * 2 + 5) seconds"
+  },
+  "runs": [
+    {
+      "processing_delay_seconds": 0.0,
+      "repetition": 1,
+      "configured_events": 20,
+      "processed_events": 20,
+      "incomplete_events": 0,
+      "timed_out": false,
+      "timeout_seconds": 5.0,
+      "publication_burst_ms": 0.1662,
+      "total_elapsed_ms": 0.4834,
+      "throughput_events_per_second": 41373.603641,
+      "maximum_observed_pending_depth": 20,
+      "bus_errors": [],
+      "queue_wait_ms": {
+        "count": 20,
+        "minimum": 0.1931,
+        "mean": 0.237905,
+        "median": 0.23885,
+        "p95": 0.2749,
+        "maximum": 0.2789
+      },
+      "processing_ms": {
+        "count": 20,
+        "minimum": 0.0021,
+        "mean": 0.003015,
+        "median": 0.00255,
+        "p95": 0.0053,
+        "maximum": 0.0084
+      },
+      "end_to_end_ms": {
+        "count": 20,
+        "minimum": 0.1984,
+        "mean": 0.24092,
+        "median": 0.2413,
+        "p95": 0.2771,
+        "maximum": 0.2873
+      }
+    },
+    {
+      "processing_delay_seconds": 0.0,
+      "repetition": 2,
+      "configured_events": 20,
+      "processed_events": 20,
+      "incomplete_events": 0,
+      "timed_out": false,
+      "timeout_seconds": 5.0,
+      "publication_burst_ms": 0.2129,
+      "total_elapsed_ms": 0.5571,
+      "throughput_events_per_second": 35900.197451,
+      "maximum_observed_pending_depth": 20,
+      "bus_errors": [],
+      "queue_wait_ms": {
+        "count": 20,
+        "minimum": 0.2347,
+        "mean": 0.264105,
+        "median": 0.2626,
+        "p95": 0.2992,
+        "maximum": 0.3036
+      },
+      "processing_ms": {
+        "count": 20,
+        "minimum": 0.0023,
+        "mean": 0.002735,
+        "median": 0.0025,
+        "p95": 0.0037,
+        "maximum": 0.0056
+      },
+      "end_to_end_ms": {
+        "count": 20,
+        "minimum": 0.2375,
+        "mean": 0.26684,
+        "median": 0.26505,
+        "p95": 0.3016,
+        "maximum": 0.3061
+      }
+    },
+    {
+      "processing_delay_seconds": 0.0,
+      "repetition": 3,
+      "configured_events": 20,
+      "processed_events": 20,
+      "incomplete_events": 0,
+      "timed_out": false,
+      "timeout_seconds": 5.0,
+      "publication_burst_ms": 0.1239,
+      "total_elapsed_ms": 0.3585,
+      "throughput_events_per_second": 55788.005579,
+      "maximum_observed_pending_depth": 20,
+      "bus_errors": [],
+      "queue_wait_ms": {
+        "count": 20,
+        "minimum": 0.1425,
+        "mean": 0.17684,
+        "median": 0.17635,
+        "p95": 0.2106,
+        "maximum": 0.2144
+      },
+      "processing_ms": {
+        "count": 20,
+        "minimum": 0.0018,
+        "mean": 0.002115,
+        "median": 0.00195,
+        "p95": 0.0028,
+        "maximum": 0.0041
+      },
+      "end_to_end_ms": {
+        "count": 20,
+        "minimum": 0.1466,
+        "mean": 0.178955,
+        "median": 0.1782,
+        "p95": 0.2125,
+        "maximum": 0.2163
+      }
+    },
+    {
+      "processing_delay_seconds": 0.5,
+      "repetition": 1,
+      "configured_events": 20,
+      "processed_events": 20,
+      "incomplete_events": 0,
+      "timed_out": false,
+      "timeout_seconds": 25.0,
+      "publication_burst_ms": 0.1496,
+      "total_elapsed_ms": 10010.203,
+      "throughput_events_per_second": 1.997961,
+      "maximum_observed_pending_depth": 20,
+      "bus_errors": [],
+      "queue_wait_ms": {
+        "count": 20,
+        "minimum": 0.1754,
+        "mean": 4754.83232,
+        "median": 4754.6489,
+        "p95": 9009.2165,
+        "maximum": 9509.6618
+      },
+      "processing_ms": {
+        "count": 20,
+        "minimum": 500.1582,
+        "mean": 500.42261,
+        "median": 500.4503,
+        "p95": 500.6382,
+        "maximum": 500.6581
+      },
+      "end_to_end_ms": {
+        "count": 20,
+        "minimum": 500.7479,
+        "mean": 5255.25493,
+        "median": 5254.89365,
+        "p95": 9509.6036,
+        "maximum": 10009.9536
+      }
+    },
+    {
+      "processing_delay_seconds": 0.5,
+      "repetition": 2,
+      "configured_events": 20,
+      "processed_events": 20,
+      "incomplete_events": 0,
+      "timed_out": false,
+      "timeout_seconds": 25.0,
+      "publication_burst_ms": 0.1263,
+      "total_elapsed_ms": 10008.2354,
+      "throughput_events_per_second": 1.998354,
+      "maximum_observed_pending_depth": 20,
+      "bus_errors": [],
+      "queue_wait_ms": {
+        "count": 20,
+        "minimum": 0.1616,
+        "mean": 4753.96788,
+        "median": 4753.9797,
+        "p95": 9007.1368,
+        "maximum": 9507.6156
+      },
+      "processing_ms": {
+        "count": 20,
+        "minimum": 500.1811,
+        "mean": 500.337735,
+        "median": 500.3153,
+        "p95": 500.5589,
+        "maximum": 500.5758
+      },
+      "end_to_end_ms": {
+        "count": 20,
+        "minimum": 500.5151,
+        "mean": 5254.305615,
+        "median": 5254.3981,
+        "p95": 9507.5449,
+        "maximum": 10007.965
+      }
+    },
+    {
+      "processing_delay_seconds": 0.5,
+      "repetition": 3,
+      "configured_events": 20,
+      "processed_events": 20,
+      "incomplete_events": 0,
+      "timed_out": false,
+      "timeout_seconds": 25.0,
+      "publication_burst_ms": 0.1244,
+      "total_elapsed_ms": 10010.0877,
+      "throughput_events_per_second": 1.997984,
+      "maximum_observed_pending_depth": 20,
+      "bus_errors": [],
+      "queue_wait_ms": {
+        "count": 20,
+        "minimum": 0.1615,
+        "mean": 4754.902895,
+        "median": 4755.00345,
+        "p95": 9008.9276,
+        "maximum": 9509.2958
+      },
+      "processing_ms": {
+        "count": 20,
+        "minimum": 500.1676,
+        "mean": 500.385495,
+        "median": 500.39095,
+        "p95": 500.5916,
+        "maximum": 500.6009
+      },
+      "end_to_end_ms": {
+        "count": 20,
+        "minimum": 500.6409,
+        "mean": 5255.28839,
+        "median": 5255.488,
+        "p95": 9509.1928,
+        "maximum": 10009.7449
+      }
+    }
+  ],
+  "conditions": [
+    {
+      "processing_delay_seconds": 0.0,
+      "repetitions": 3,
+      "configured_events": 60,
+      "processed_events": 60,
+      "incomplete_events": 0,
+      "maximum_observed_pending_depth": 20,
+      "elapsed_ms_per_repetition": {
+        "count": 3,
+        "minimum": 0.3585,
+        "mean": 0.466333,
+        "median": 0.4834,
+        "p95": 0.5571,
+        "maximum": 0.5571
+      },
+      "throughput_events_per_second": {
+        "count": 3,
+        "minimum": 35900.197451,
+        "mean": 44353.935557,
+        "median": 41373.603641,
+        "p95": 55788.005579,
+        "maximum": 55788.005579
+      },
+      "queue_wait_ms": {
+        "count": 60,
+        "minimum": 0.1425,
+        "mean": 0.226283,
+        "median": 0.23525,
+        "p95": 0.2902,
+        "maximum": 0.3036
+      },
+      "processing_ms": {
+        "count": 60,
+        "minimum": 0.0018,
+        "mean": 0.002622,
+        "median": 0.0024,
+        "p95": 0.0041,
+        "maximum": 0.0084
+      },
+      "end_to_end_ms": {
+        "count": 60,
+        "minimum": 0.1466,
+        "mean": 0.228905,
+        "median": 0.2379,
+        "p95": 0.2927,
+        "maximum": 0.3061
+      }
+    },
+    {
+      "processing_delay_seconds": 0.5,
+      "repetitions": 3,
+      "configured_events": 60,
+      "processed_events": 60,
+      "incomplete_events": 0,
+      "maximum_observed_pending_depth": 20,
+      "elapsed_ms_per_repetition": {
+        "count": 3,
+        "minimum": 10008.2354,
+        "mean": 10009.5087,
+        "median": 10010.0877,
+        "p95": 10010.203,
+        "maximum": 10010.203
+      },
+      "throughput_events_per_second": {
+        "count": 3,
+        "minimum": 1.997961,
+        "mean": 1.9981,
+        "median": 1.997984,
+        "p95": 1.998354,
+        "maximum": 1.998354
+      },
+      "queue_wait_ms": {
+        "count": 60,
+        "minimum": 0.1615,
+        "mean": 4754.567698,
+        "median": 4754.4762,
+        "p95": 9009.2165,
+        "maximum": 9509.6618
+      },
+      "processing_ms": {
+        "count": 60,
+        "minimum": 500.1582,
+        "mean": 500.381947,
+        "median": 500.37115,
+        "p95": 500.6009,
+        "maximum": 500.6581
+      },
+      "end_to_end_ms": {
+        "count": 60,
+        "minimum": 500.5151,
+        "mean": 5254.949645,
+        "median": 5254.9285,
+        "p95": 9509.6036,
+        "maximum": 10009.9536
+      }
+    }
+  ],
+  "human_summary": "E1 - Single-Worker Queue Bottleneck\nSynthetic connector-level measurements using the production InProcessBus.\nPython 3.12.4; Git 1bd8790ae29a01007c55b41dc3ef76c396b065df; working tree dirty=True.\nConfiguration: 20 events/repetition, 3 repetitions/condition, delays=[0.0, 0.5], workers=1.\ndelay=0.000s: 60/60 completed; mean elapsed=0.466ms; p95 queue wait=0.290ms; mean throughput=44353.936 events/s; max observed pending=20.\ndelay=0.500s: 60/60 completed; mean elapsed=10009.509ms; p95 queue wait=9009.217ms; mean throughput=1.998 events/s; max observed pending=20.\nInterpretation is limited to the current in-memory, single-worker event connector."
+}

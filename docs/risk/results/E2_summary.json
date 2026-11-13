@@ -1,0 +1,80 @@
+{
+  "experiment_id": "E2",
+  "scope": "controlled shutdown with queued synthetic messages; not an unexpected crash or successfully processed gameplay-turn loss test",
+  "generated_at_utc": "2026-11-13T20:32:24.404728+00:00",
+  "environment": {
+    "python_version": "3.12.4",
+    "python_implementation": "CPython",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git": {
+      "commit_sha": "1bd8790ae29a01007c55b41dc3ef76c396b065df",
+      "working_tree_dirty": true,
+      "metadata_error": null
+    },
+    "experiment_script_sha256": "cb4f1164e445b4f282be6d623f7e3b1a035a3e78ab235d9a85adc60506bf38b9"
+  },
+  "configuration": {
+    "event_topic": "turn.context_prepared",
+    "events_per_scenario": 10,
+    "background_worker_started": false,
+    "recovery_status": "CompletionRecovery.recover is unimplemented and was not invoked"
+  },
+  "scenarios": [
+    {
+      "scenario": "normal_completion",
+      "events_submitted": 10,
+      "events_successfully_dispatched": 10,
+      "events_discarded_during_shutdown": 0,
+      "events_restored_in_fresh_bus": 0,
+      "pending_before_action": 0,
+      "final_queue_depth": 0,
+      "fresh_bus_queue_depth": null,
+      "close_time_ms": 0.0072,
+      "failure_categories": {}
+    },
+    {
+      "scenario": "controlled_shutdown_with_pending_messages",
+      "events_submitted": 10,
+      "events_successfully_dispatched": 0,
+      "events_discarded_during_shutdown": 10,
+      "events_restored_in_fresh_bus": 0,
+      "pending_before_action": 10,
+      "final_queue_depth": 0,
+      "fresh_bus_queue_depth": 0,
+      "close_time_ms": 0.0298,
+      "failure_categories": {
+        "queue_closed_before_dispatch": 10
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "scenario": "normal_completion",
+      "events_submitted": 10,
+      "events_successfully_dispatched": 10,
+      "events_discarded_during_shutdown": 0,
+      "events_restored_in_fresh_bus": 0,
+      "pending_before_action": 0,
+      "final_queue_depth": 0,
+      "fresh_bus_queue_depth": null,
+      "close_time_ms": 0.0072,
+      "failure_categories": {}
+    },
+    {
+      "scenario": "controlled_shutdown_with_pending_messages",
+      "events_submitted": 10,
+      "events_successfully_dispatched": 0,
+      "events_discarded_during_shutdown": 10,
+      "events_restored_in_fresh_bus": 0,
+      "pending_before_action": 10,
+      "final_queue_depth": 0,
+      "fresh_bus_queue_depth": 0,
+      "close_time_ms": 0.0298,
+      "failure_categories": {
+        "queue_closed_before_dispatch": 10
+      }
+    }
+  ],
+  "architectural_scope": "The observed loss is specific to this in-memory queue and close policy. Event-Based architecture does not inherently require nondurable messaging.",
+  "human_summary": "E2 - Pending-Event Loss During Controlled Shutdown\nControlled shutdown with queued synthetic messages; not an unexpected crash or successfully processed gameplay-turn loss test.\nPython 3.12.4; Git 1bd8790ae29a01007c55b41dc3ef76c396b065df; working tree dirty=True.\nnormal_completion: submitted=10, dispatched=10, discarded=0, restored=0, final depth=0, close=0.007200ms.\ncontrolled_shutdown_with_pending_messages: submitted=10, dispatched=0, discarded=10, restored=0, final depth=0, close=0.029800ms.\nThe observed loss is specific to this in-memory queue and close policy. Event-Based architecture does not inherently require nondurable messaging."
+}
