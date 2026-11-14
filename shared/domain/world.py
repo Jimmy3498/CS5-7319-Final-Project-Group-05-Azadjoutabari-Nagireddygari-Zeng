@@ -1,5 +1,6 @@
+from ..codec import dump_json
 from ..commands import CreateCampaign, PublishCampaign, SaveDraft
-from ..errors import unfinished
+from ..errors import ApplicationError, ErrorCode, unfinished
 from ..models.common import Issue
 from ..models.world import CampaignContent, CampaignDraft, CatalogEntry
 from ..ports import CampaignRepository
@@ -14,10 +15,19 @@ class WorldService:
         unfinished("WORLD")
 
     def save(self, owner_id: str, command: SaveDraft) -> CampaignDraft:
-        """TODO WORLD: ownership/revision and safe typed-shape checks; incomplete is saveable.
-        Preserve caller edits on conflict. Do not auto-publish, call AI, or rewrite sessions.
-        """
-        unfinished("WORLD")
+        """Save typed content with optimistic concurrency; incomplete drafts are allowed."""
+        if not isinstance(command.content, CampaignContent):
+            raise ApplicationError(ErrorCode.INVALID, "Invalid campaign draft content")
+        if command.expected_revision < 0:
+            raise ApplicationError(ErrorCode.INVALID, "Invalid expected draft revision")
+        if len(dump_json(command.content).encode("utf-8")) > 1024 * 1024:
+            raise ApplicationError(ErrorCode.INVALID, "Campaign draft exceeds the size limit")
+        return self.repository.save_draft(
+            owner_id,
+            command.campaign_id,
+            command.expected_revision,
+            command.content,
+        )
 
     def readiness(self, content: CampaignContent) -> tuple[Issue, ...]:
         """TODO WORLD: setup, preset PC/start, referential/state validity, explicit access,

@@ -72,3 +72,27 @@ def load_json(text: str):
         raise ValueError("Non-finite JSON constant")
 
     return json.loads(text, object_pairs_hook=unique_object, parse_constant=reject_constant)
+
+
+def json_value(value):
+    """Convert public typed values to their stable JSON representation."""
+    if is_dataclass(value):
+        return {field.name: json_value(getattr(value, field.name)) for field in fields(value)}
+    if isinstance(value, dict):
+        if any(type(key) is not str for key in value):
+            raise TypeError("JSON object keys must be strings")
+        return {key: json_value(item) for key, item in value.items()}
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, (list, tuple)):
+        return [json_value(item) for item in value]
+    if value is None or type(value) in (str, int, bool):
+        return value
+    if type(value) is float and math.isfinite(value):
+        return value
+    raise TypeError(f"Unsupported JSON value: {type(value).__name__}")
+
+
+def dump_json(value) -> str:
+    """Encode typed public data without permissive NaN or object fallbacks."""
+    return json.dumps(json_value(value), sort_keys=True, separators=(",", ":"), allow_nan=False)

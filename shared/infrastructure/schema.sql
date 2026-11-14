@@ -72,7 +72,9 @@ CREATE TABLE editor_proposals (
  id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES accounts(id),
  campaign_id TEXT NOT NULL REFERENCES campaigns(id), base_persisted_revision INTEGER NOT NULL,
  base_buffer_revision INTEGER NOT NULL, candidate_json TEXT NOT NULL CHECK(json_valid(candidate_json)),
- status TEXT NOT NULL, created_at TEXT NOT NULL
+ summary TEXT NOT NULL, changes_json TEXT NOT NULL CHECK(json_valid(changes_json)),
+ status TEXT NOT NULL CHECK(status IN ('pending','accepted','rejected')),
+ created_at TEXT NOT NULL, resolved_at TEXT
 );
 CREATE TABLE provider_profiles (
  id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES accounts(id), name TEXT NOT NULL,

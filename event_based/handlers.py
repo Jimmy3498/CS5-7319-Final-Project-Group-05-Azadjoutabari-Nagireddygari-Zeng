@@ -6,14 +6,15 @@ handlers intentionally remain explicit pseudocode. See docs/ARCHITECTURE.md.
 
 from uuid import uuid4
 
+from shared.commands import RequestEditorProposal
 from shared.domain.services import Services
-from shared.errors import unfinished
+from shared.errors import ApplicationError, ErrorCode, unfinished
 from shared.gateway import OperationStatus
 from shared.operation_status import OperationStatusStore
 
 from .bus import InProcessBus
 from .messages import Message, Topic
-from .state import WorkflowStateStore
+from .state import EditorWork, WorkflowStateStore
 
 
 class ComponentHandlers:
@@ -89,23 +90,61 @@ class ComponentHandlers:
         self.complete(message, self.s.editor.review(user.id, message.command))
 
     def editor_requested(self, message: Message) -> None:
-        """TODO EVENTS: authenticate -> EditorService.prepare including unsaved local revision
-        -> ProfileService.capture -> retain private editor work -> queue EDITOR_CONTEXT with ref.
-        No AI request or file write in this handler; stale/unauthorized requests terminate.
-        """
-        unfinished("EVENTS")
+        """Authorize and retain private editor context before queuing provider work."""
+        if not isinstance(message.command, RequestEditorProposal):
+            raise ApplicationError(ErrorCode.INVALID, "Invalid editor request")
+        user = self.s.accounts.require_user(message.context)
+        buffer = self.s.editor.prepare(user.id, message.command)
+        capture = self.s.profiles.capture(user.id)
+        reference = self.state.retain_editor(
+            message.operation_id,
+            EditorWork(
+                user.id,
+                message.context,
+                buffer,
+                message.command.instruction,
+                message.command.selected_record_ids,
+                capture,
+            ),
+        )
+        self.statuses.update(
+            message.operation_id,
+            OperationStatus.RUNNING,
+            "Editor context prepared",
+        )
+        self.next_event(message, Topic.EDITOR_CONTEXT, reference)
 
     def editor_model(self, message: Message) -> None:
-        """TODO EVENTS: read owned editor work -> AIService.propose_editor -> retain candidate
-        and base revision -> queue EDITOR_CANDIDATE. Provider failure is explicit, not replayed.
-        """
-        unfinished("EVENTS")
+        """Make the single paid provider call and retain its typed candidate privately."""
+        work = self.state.private_editor(message.work_reference, message.context, "prepared")
+        candidate, summary = self.s.ai.propose_editor(
+            work.buffer,
+            work.instruction,
+            work.selected_ids,
+            work.capture,
+        )
+        self.state.retain_editor_candidate(
+            message.work_reference,
+            message.context,
+            candidate,
+            summary,
+        )
+        self.next_event(message, Topic.EDITOR_CANDIDATE, message.work_reference or "")
 
     def editor_candidate(self, message: Message) -> None:
-        """TODO EVENTS: EditorService.retain_proposal -> authorized proposal result -> cleanup.
-        No auto-accept/save/publish. Later EDITOR_REVIEW is a new explicit user command.
-        """
-        unfinished("EVENTS")
+        """Persist the reviewable proposal without accepting, saving, or publishing it."""
+        work = self.state.private_editor(message.work_reference, message.context, "candidate")
+        if work.candidate is None or work.summary is None:
+            raise ApplicationError(ErrorCode.INTERNAL, "Editor candidate is incomplete")
+        proposal = self.s.editor.retain_proposal(
+            work.owner_id,
+            work.buffer,
+            work.candidate,
+            work.summary,
+            work.selected_ids,
+        )
+        self.complete(message, proposal)
+        self.state.release(message.operation_id)
 
     def turn_requested(self, message: Message) -> None:
         """TODO EVENTS: authenticate -> durable request admission/dedup -> GameplayService.prepare

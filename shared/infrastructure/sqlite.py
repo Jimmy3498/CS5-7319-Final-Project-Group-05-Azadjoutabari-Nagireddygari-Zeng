@@ -133,6 +133,11 @@ class SQLiteStore:
     def load_editor_proposal(self, owner_id: str, proposal_id: str) -> EditorProposal:
         raise FeatureNotImplemented("PERSISTENCE")
 
+    def resolve_editor_proposal(
+        self, owner_id: str, proposal_id: str, status: str
+    ) -> EditorProposal:
+        raise FeatureNotImplemented("PERSISTENCE")
+
     def drafts_for_owner(self, owner_id: str) -> tuple[CampaignSummary, ...]:
         raise FeatureNotImplemented("PERSISTENCE")
 

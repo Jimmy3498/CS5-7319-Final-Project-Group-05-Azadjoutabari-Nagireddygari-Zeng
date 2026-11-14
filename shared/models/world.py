@@ -171,3 +171,13 @@ class EditorProposal:
     base_buffer_revision: int
     summary: str
     candidate: CampaignContent
+    changes: tuple["EditorChange", ...] = ()
+    status: str = "pending"
+
+
+@dataclass(frozen=True)
+class EditorChange:
+    record_id: str
+    path: str
+    before: str
+    after: str

@@ -64,7 +64,13 @@ class LayeredApplication:
             candidate, summary = s.ai.propose_editor(
                 buffer, command.instruction, command.selected_record_ids, capture
             )
-            return s.editor.retain_proposal(user.id, buffer, candidate, summary)
+            return s.editor.retain_proposal(
+                user.id,
+                buffer,
+                candidate,
+                summary,
+                command.selected_record_ids,
+            )
         if isinstance(command, c.StartSession):
             session = s.gameplay.start(user.id, command)
             return s.knowledge.player_view(session, (), "")

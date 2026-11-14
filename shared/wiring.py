@@ -29,7 +29,7 @@ def compose_services(data_root: Path) -> Services:
     return Services(
         accounts=accounts,
         world=WorldService(repository),
-        editor=EditorService(repository),
+        editor=EditorService(repository, repository),
         knowledge=knowledge,
         gameplay=GameplayService(repository, repository),
         profiles=ProfileService(repository, credentials),

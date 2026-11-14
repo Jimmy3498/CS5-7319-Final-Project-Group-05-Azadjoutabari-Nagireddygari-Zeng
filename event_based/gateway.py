@@ -32,6 +32,12 @@ class EventGateway:
             # A downstream subscriber is not allowed to relabel committed gameplay as failed.
             self.subscriber_failures.append((component, message.operation_id))
             return
+        if message.topic in {
+            Topic.EDITOR_REQUEST,
+            Topic.EDITOR_CONTEXT,
+            Topic.EDITOR_CANDIDATE,
+        }:
+            self.handlers.state.release(message.operation_id)
         self.statuses.fail(message.operation_id, error)
 
     def submit(

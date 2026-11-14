@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from .common import SecretInput
-from .world import WorldDefinition
+from .world import CampaignContent, WorldDefinition
 
 
 @dataclass(frozen=True)
@@ -64,3 +64,11 @@ class ProviderResponse:
     input_tokens: int | None = None
     output_tokens: int | None = None
     finish_reason: str | None = None
+
+
+@dataclass(frozen=True)
+class EditorCompletion:
+    """Strict provider response for a reviewed editor proposal."""
+
+    candidate: CampaignContent
+    summary: str
