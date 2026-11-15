@@ -10,6 +10,9 @@ classDiagram
   class EventGateway
   class InProcessBus
   class ComponentHandlers
+  class EditorWork
+  class TurnWork
+  class NarrationWork
   class WorkflowStateStore
   class CompletionRecovery
   class Services
@@ -63,3 +66,6 @@ classDiagram
   ScriptedTestProvider ..|> ProviderTransport
   ProfileService --> CredentialStore
   LocalCredentialStore ..|> CredentialStore
+  WorkflowStateStore o-- EditorWork
+  WorkflowStateStore ..> TurnWork : planned
+  WorkflowStateStore ..> NarrationWork : planned

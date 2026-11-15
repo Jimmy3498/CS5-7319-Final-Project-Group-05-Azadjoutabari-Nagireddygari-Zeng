@@ -1,7 +1,7 @@
 """Component handlers; no shared whole-turn coordinator or inline subscriber calls.
 
-Small single-capability command paths are wired. Multi-stage editor/gameplay/recovery
-handlers intentionally remain explicit pseudocode. See docs/ARCHITECTURE.md.
+Single-capability commands and the three-stage editor flow are implemented.
+Gameplay and recovery handlers remain TODO. See docs/ARCHITECTURE.md.
 """
 
 from uuid import uuid4

@@ -2,7 +2,9 @@ import ast
 import dataclasses
 import sqlite3
 import unittest
+from contextlib import closing
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from threading import Event
 
 from event_based.bootstrap import build as event_based
@@ -12,7 +14,7 @@ from layered.application import COMMAND_ROUTES
 from layered.bootstrap import build as layered
 from shared import commands as c
 from shared.codec import decode, load_json
-from shared.errors import ApplicationError, FeatureNotImplemented
+from shared.errors import ApplicationError, ErrorCode
 from shared.gateway import OperationStatus
 from shared.infrastructure.provider import CompatibleHttpProvider, ScriptedTestProvider
 from shared.infrastructure.sqlite import SQLiteStore
@@ -66,35 +68,69 @@ def commands():
 
 
 class ContractStructureTests(unittest.TestCase):
+    def setUp(self):
+        temporary = TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.data_root = Path(temporary.name)
+
     def test_commands_have_both_architecture_routes(self):
         self.assertEqual(set(c.COMMAND_TYPES), set(COMMAND_ROUTES))
         self.assertEqual(set(c.COMMAND_TYPES), set(COMMAND_TOPICS))
         self.assertEqual(set(c.COMMAND_TYPES), {type(x) for x in commands()})
 
-    def test_every_stub_command_reports_unimplemented_not_success(self):
+    def test_unfinished_commands_report_unimplemented(self):
         context = RequestContext("client", None, "correlation")
-        direct = layered()
-        queued = event_based(start_worker=False)
-        try:
-            for index, command in enumerate(commands()):
-                with self.subTest(command=type(command).__name__):
-                    self.assertEqual(
-                        direct.submit(context, command, str(index)).status,
-                        OperationStatus.UNIMPLEMENTED,
-                    )
-                    receipt = queued.submit(context, command, str(index))
-                    self.assertEqual(receipt.status, OperationStatus.PENDING)
-                    self.assertTrue(queued.bus.dispatch_one())
-                    self.assertEqual(
-                        queued.poll(context, receipt.operation_id).status,
-                        OperationStatus.UNIMPLEMENTED,
-                    )
-        finally:
-            direct.close()
-            queued.close()
+        direct = layered(self.data_root / "layered")
+        self.addCleanup(direct.close)
+        queued = event_based(self.data_root / "event_based", start_worker=False)
+        self.addCleanup(queued.close)
+
+        def submit(app, command, request_id):
+            receipt = app.submit(context, command, request_id)
+            if app is queued:
+                self.assertEqual(receipt.status, OperationStatus.PENDING)
+                self.assertTrue(queued.bus.dispatch_one())
+                receipt = queued.poll(context, receipt.operation_id)
+            return receipt
+
+        implemented = (
+            c.RegisterAccount,
+            c.Login,
+            c.Logout,
+            c.CreateCampaign,
+            c.SaveDraft,
+            c.PublishCampaign,
+            c.StartSession,
+            c.SaveProviderCard,
+            c.ActivateProviderCard,
+            c.DeleteProviderCard,
+        )
+        password = SecretInput("demo password")
+
+        for app in (direct, queued):
+            with self.subTest(architecture=app.architecture):
+                for request_id, command in (
+                    ("register", c.RegisterAccount("Alice", password)),
+                    ("login", c.Login("Alice", password)),
+                ):
+                    receipt = submit(app, command, request_id)
+                    self.assertEqual(receipt.status, OperationStatus.COMPLETED, receipt.message)
+
+                for index, command in enumerate(commands()):
+                    if isinstance(command, implemented):
+                        continue
+                    with self.subTest(command=type(command).__name__):
+                        receipt = submit(app, command, f"unfinished-{index}")
+                        expected = (
+                            OperationStatus.REJECTED
+                            if isinstance(command, c.RequestEditorProposal)
+                            or (app is direct and isinstance(command, c.SubmitTurn))
+                            else OperationStatus.UNIMPLEMENTED
+                        )
+                        self.assertEqual(receipt.status, expected, receipt.message)
 
     def test_all_declared_edges_and_independent_completion_consumers_registered(self):
-        app = event_based(start_worker=False)
+        app = event_based(self.data_root / "event_based", start_worker=False)
         try:
             for source, target in FLOW_EDGES:
                 self.assertIn(source, app.bus.subscriptions)
@@ -106,8 +142,10 @@ class ContractStructureTests(unittest.TestCase):
             app.close()
 
     def test_adapters_fail_closed(self):
-        with self.assertRaises(FeatureNotImplemented):
-            SQLiteStore(Path("NOT-CREATED.sqlite3")).catalog()
+        store = SQLiteStore(self.data_root / "catalog.sqlite3")
+        self.assertFalse(store.database_path.exists())
+        store.initialize()
+        self.assertEqual(store.catalog(), ())
         profile = ProviderProfile(
             "id",
             "owner",
@@ -119,11 +157,11 @@ class ContractStructureTests(unittest.TestCase):
             True,
         )
         capture = ProviderCapture(profile, SecretInput("PRIVATE-CANARY"))
-        with self.assertRaises(FeatureNotImplemented):
+        with self.assertRaises(ApplicationError) as caught:
             CompatibleHttpProvider().complete((), capture)
+        self.assertEqual(caught.exception.code, ErrorCode.INVALID)
         self.assertNotIn("PRIVATE-CANARY", repr(capture))
         self.assertNotIn("PRIVATE-CANARY", repr(SecretInput("PRIVATE-CANARY")))
-        self.assertFalse((ROOT / "NOT-CREATED.sqlite3").exists())
 
     def test_scripted_provider_is_explicit_and_does_not_fabricate_more_responses(self):
         provider = ScriptedTestProvider((ProviderResponse("synthetic"),))
@@ -174,7 +212,7 @@ class ContractStructureTests(unittest.TestCase):
                 self.assertTrue((ROOT / path).is_file(), path)
 
     def test_schema_parses_and_enforces_basic_foreign_keys(self):
-        with sqlite3.connect(":memory:") as db:
+        with closing(sqlite3.connect(":memory:")) as db:
             db.executescript((ROOT / "shared/infrastructure/schema.sql").read_text())
             self.assertEqual(db.execute("PRAGMA foreign_keys").fetchone()[0], 1)
             self.assertIn(

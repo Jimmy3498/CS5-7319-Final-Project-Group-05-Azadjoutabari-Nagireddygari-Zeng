@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from .common import Issue
-from .world import WorldDefinition
+from .world import TextRecord, WorldDefinition
 
 
 class EffectKind(StrEnum):
@@ -46,6 +46,7 @@ class SessionSnapshot:
     flag_values: tuple[
         tuple[str, bool], ...
     ]  # Current values; FlagDefinition.initial stays authored.
+    setup: tuple[TextRecord, ...] = ()
 
 
 @dataclass(frozen=True)

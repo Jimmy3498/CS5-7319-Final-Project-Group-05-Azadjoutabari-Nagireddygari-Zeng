@@ -25,8 +25,8 @@ Choose work by capability so each implementation supports both architectures. As
 4. Replace the skipped acceptance bodies with assertions and enable the cases for both styles.
 5. Update affected contracts, diagrams and implementation status.
 
-Start with accounts, repository initialization and draft create/save/load, then publication and isolated
-sessions. The first gameplay slice adds a validated turn, save/resume and one milestone.
+The account/campaign foundation and Layered turn path are implemented. Choose remaining work from
+[STATUS](docs/STATUS.md), and coordinate edits to shared services and the SQLite schema.
 
 ## Architecture changes
 
@@ -46,7 +46,8 @@ recovery. Follow the comparison experiments in [ARCHITECTURE](docs/ARCHITECTURE.
 - Keep credentials, private transcripts, databases, `.env`, `.local` and `.venv` out of Git.
 - Run `scripts/check_public_tree.py` and review staged files before pushing.
 - Retain contribution history and provenance; agree on a license.
-- Default tests run offline. Run provider tests manually with approved credentials.
+- Default tests use scripted providers, fake vaults and temporary localhost HTTP servers.
+  External provider checks are separate. Keep regression tests in the repository; demo builds exclude them.
 
 ## Course hand-in
 

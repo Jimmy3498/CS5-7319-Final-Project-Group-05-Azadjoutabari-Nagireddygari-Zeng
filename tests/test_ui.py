@@ -1,6 +1,7 @@
 import importlib.util
 import unittest
 from pathlib import Path
+from time import monotonic, sleep
 
 ROOT = Path(__file__).resolve().parents[1]
 HAS_STREAMLIT = importlib.util.find_spec("streamlit") is not None
@@ -37,6 +38,14 @@ class PreviewTests(unittest.TestCase):
             self.assertEqual(len(app.exception), 0)
             next(b for b in app.button if b.label == "Refresh probe status").click().run(timeout=20)
             self.assertEqual(len(app.exception), 0)
-            expected = {"unimplemented"} if package == "layered" else {"pending", "unimplemented"}
-            self.assertTrue(any(str(m.value).strip() in expected for m in app.markdown))
+            deadline = monotonic() + 5
+            while not any(str(m.value).strip() == "rejected" for m in app.markdown):
+                if monotonic() >= deadline:
+                    self.fail(f"{package}: probe did not reach rejected")
+                sleep(0.01)
+                next(b for b in app.button if b.label == "Refresh probe status").click().run(
+                    timeout=20
+                )
+                self.assertEqual(len(app.exception), 0, str(app.exception))
+
             self.assertFalse(any(str(m.value).strip() == "completed" for m in app.markdown))

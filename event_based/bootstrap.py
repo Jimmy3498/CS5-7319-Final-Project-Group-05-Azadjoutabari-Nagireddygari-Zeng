@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from shared.infrastructure.sqlite import SQLiteStore
 from shared.wiring import compose_services
 
 from .gateway import EventGateway
@@ -7,4 +8,5 @@ from .gateway import EventGateway
 
 def build(data_root: Path | None = None, start_worker: bool = True) -> EventGateway:
     root = data_root or Path(__file__).resolve().parents[1] / ".local" / "event_based"
+    SQLiteStore(root / "application.sqlite3").initialize()
     return EventGateway(compose_services(root), start_worker=start_worker)

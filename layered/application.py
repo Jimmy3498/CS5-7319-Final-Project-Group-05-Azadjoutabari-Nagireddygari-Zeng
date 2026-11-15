@@ -1,7 +1,7 @@
 """Layered application coordinator: explicit calls to domain-facing capabilities.
 
 No HTTP, SQLite, credential-store implementation or event bus is imported here.
-Business services deliberately raise FeatureNotImplemented until contributors fill them.
+Unfinished capabilities retain explicit FeatureNotImplemented results.
 """
 
 from shared import commands as c
@@ -90,34 +90,42 @@ class LayeredApplication:
     def _turn(
         self, owner_id: str, command: c.SubmitTurn, operation_id: str, request_id: str | None
     ) -> TurnResultView:
-        """Layered turn sequence.
-
-        TODO LAYERED: integrate durable admission/failure receipts and retry fencing
-        with PERSISTENCE (A4/A5/A6). SQL commit must include
-        a recoverable reporting notice. Network calls are outside the transaction.
-        """
         s = self.services
         if request_id is None:
             raise ApplicationError(ErrorCode.INVALID, "Missing request identity")
+
         admission = s.gameplay.prepare(owner_id, command, operation_id, request_id)
         if admission.previous_commit is not None:
             return TurnResultView(admission.previous_commit.turn, None)
-        baseline = admission.baseline
-        if baseline is None:
-            raise ApplicationError(ErrorCode.INTERNAL, "Invalid turn admission")
-        capture = s.profiles.capture(owner_id)
-        director_context = s.knowledge.director_context(baseline, command.player_input)
-        proposal = s.ai.plan_turn(director_context, capture)
-        candidate = s.gameplay.validate_and_project(baseline, proposal)
-        candidate = s.knowledge.authorize_disclosures(baseline, candidate, proposal)
-        history = s.gameplay.history(owner_id, baseline.id)
-        visible = s.knowledge.player_view(candidate, history, command.player_input)
-        narration = s.ai.narrate(visible, capture)
-        commit = s.gameplay.commit(owner_id, operation_id, command, candidate, narration)
+
+        try:
+            baseline = admission.baseline
+            if baseline is None:
+                raise ApplicationError(ErrorCode.INTERNAL, "Invalid turn admission")
+
+            capture = s.profiles.capture(owner_id)
+            history = s.gameplay.history(owner_id, baseline.id)
+            context = s.knowledge.director_context(baseline, command.player_input, history)
+            proposal = s.ai.plan_turn(context, capture)
+            candidate = s.gameplay.validate_and_project(baseline, proposal)
+            candidate = s.knowledge.authorize_disclosures(baseline, candidate, proposal)
+            visible = s.knowledge.player_view(candidate, history, command.player_input)
+            narration = s.ai.narrate(visible, capture)
+            commit = s.gameplay.commit(owner_id, operation_id, command, candidate, narration)
+        except Exception as error:
+            code = error.code if isinstance(error, ApplicationError) else ErrorCode.INTERNAL
+            s.gameplay.record_failure(
+                owner_id,
+                operation_id,
+                command.session_id,
+                code.value,
+                code == ErrorCode.PROVIDER_UNCERTAIN,
+            )
+            raise
+
         try:
             s.reporting.consume_committed_turn(commit.notice)
         except Exception:
-            # Already committed: do not turn this into a false gameplay failure.
-            # Pending notification remains for explicit Layered reporting catch-up.
             return TurnResultView(commit.turn, True)
+
         return TurnResultView(commit.turn, False)
