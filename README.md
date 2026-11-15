@@ -4,8 +4,9 @@ One repository with two Python/Streamlit applications: **Layered** and **Event-B
 Each has its own entrypoint, coordinator and build target. Models, business capabilities, adapters
 and UI components are maintained once in `shared/`.
 
-This is a contribution scaffold. Business workflows are marked with TODO work IDs;
-[STATUS](docs/STATUS.md) lists what runs and what needs implementation.
+Shared persistence and services, Layered gameplay and the reviewed-editor workflow are implemented
+to different stages. [STATUS](docs/STATUS.md) lists working paths and remaining work;
+[CHANGES](docs/CHANGES.md) summarizes this integration checkpoint.
 
 ## Run locally
 
@@ -28,9 +29,13 @@ python -m streamlit run layered/streamlit_app.py --server.port 8501
 python -m streamlit run event_based/streamlit_app.py --server.port 8502
 ```
 
+For real API-card storage, also install `python -m pip install "keyring>=25,<30"`
+and use a supported OS credential vault. Tests use fake credentials and do not require keyring.
+
 Each application is fixed to its architecture; there is no combined launcher or runtime selector.
-The preview runs locally with business controls disabled. The sidebar wiring probe returns
-`UNIMPLEMENTED` and makes no provider calls.
+The UI is a preview with business controls disabled. The sidebar probe rejects an empty
+registration without creating an account or calling a provider. Backend workflows are exercised
+by the tests while UI integration is pending.
 
 ## Build each demo
 
@@ -44,6 +49,7 @@ Each also creates an unpacked folder. A build reads only its own application and
 the other application's source is not required. Extract either ZIP and follow its README.
 
 The Layered demo uses port **8501**; Event-Based uses **8502**. Each keeps its own local data.
+Tests and risk experiment scripts are not included in the standalone demos.
 Develop in this repository, not in the generated folders. To rebuild without overwriting a previous
 output, use `python -m layered.build --output dist/v2` or `python -m event_based.build --output dist/v2`.
 
@@ -83,9 +89,9 @@ python -m unittest discover -s tests -v
 
 ## MVP scope
 
-One account can author and play. Planned features include world/entity editing, reviewed AI coediting,
+One account can author and play. The target MVP includes world/entity editing, reviewed AI coediting,
 a campaign catalog, preset player characters, independent sessions, validated turns, save/resume,
-template-based item creation, compatible campaign updates, milestone reports and private API cards.
+template-based item creation, compatible campaign updates, milestone reports and private API cards. [STATUS](docs/STATUS.md) tracks completion.
 Player views enforce character knowledge and disclosure rules.
 
 Marketplace/payments, multiplayer, custom player-character creation, rulebook interpretation and

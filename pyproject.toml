@@ -1,7 +1,7 @@
 [project]
 name = "cs7319-storytelling-scaffold"
 version = "0.1.0"
-description = "Contribution-ready architecture comparison scaffold; business features are TODOs"
+description = "Layered and Event-Based storytelling architecture comparison"
 requires-python = ">=3.12"
 dependencies = ["streamlit==1.66.1"]
 
