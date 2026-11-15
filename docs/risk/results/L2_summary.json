@@ -1,0 +1,179 @@
+{
+  "experiment_id": "L2",
+  "label": "Layered coordinator/reporting simulation",
+  "scope": "real Layered coordinator with deterministic gameplay/reporting doubles; not a complete integration test or durable SQLite persistence proof",
+  "generated_at_utc": "2026-11-13T20:53:13.802590+00:00",
+  "environment": {
+    "python_version": "3.12.4",
+    "python_implementation": "CPython",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git": {
+      "commit_sha": "1bd8790ae29a01007c55b41dc3ef76c396b065df",
+      "working_tree_dirty": true,
+      "metadata_error": null
+    },
+    "experiment_script_sha256": "64c0a6d387f68fb20f01cb8b19504191a30fb7901d663ebf3174ca7b24a54cae",
+    "shared_l1_fixture_sha256": "aacb7df83bc48e773fe2c288309ef49a9df6ee4388a34adb398c2bcf75fc082b"
+  },
+  "configuration": {
+    "repetitions_per_scenario": 10,
+    "scenarios": [
+      {
+        "id": "A_normal_reporting",
+        "reporting_delay_seconds": 0.0,
+        "reporting_failure": false
+      },
+      {
+        "id": "B_reporting_delay_0_5s",
+        "reporting_delay_seconds": 0.5,
+        "reporting_failure": false
+      },
+      {
+        "id": "C_reporting_delay_2s",
+        "reporting_delay_seconds": 2.0,
+        "reporting_failure": false
+      },
+      {
+        "id": "D_reporting_failure_after_commit",
+        "reporting_delay_seconds": 0.0,
+        "reporting_failure": true
+      }
+    ],
+    "catch_up_status": "ReportingService.catch_up is unimplemented; recovery not evaluated"
+  },
+  "conditions": [
+    {
+      "scenario": "A_normal_reporting",
+      "reporting_delay_seconds": 0.0,
+      "reporting_failure_configured": false,
+      "trials": 10,
+      "completed_receipts": 10,
+      "reporting_pending_true": 0,
+      "successful_simulated_commits": 10,
+      "commit_exactly_once_trials": 10,
+      "reporting_successes": 10,
+      "reporting_failures": 0,
+      "commit_before_reporting_trials": 10,
+      "sequence_valid_trials": 10,
+      "submission_to_commit_ms": {
+        "count": 10,
+        "minimum": 0.029,
+        "median": 0.03655,
+        "maximum": 0.111
+      },
+      "reporting_duration_ms": {
+        "count": 10,
+        "minimum": 0.0005,
+        "median": 0.0006,
+        "maximum": 0.001
+      },
+      "total_submit_response_ms": {
+        "count": 10,
+        "minimum": 0.0354,
+        "median": 0.0454,
+        "maximum": 0.1276
+      },
+      "median_response_increase_vs_normal_ms": 0.0
+    },
+    {
+      "scenario": "B_reporting_delay_0_5s",
+      "reporting_delay_seconds": 0.5,
+      "reporting_failure_configured": false,
+      "trials": 10,
+      "completed_receipts": 10,
+      "reporting_pending_true": 0,
+      "successful_simulated_commits": 10,
+      "commit_exactly_once_trials": 10,
+      "reporting_successes": 10,
+      "reporting_failures": 0,
+      "commit_before_reporting_trials": 10,
+      "sequence_valid_trials": 10,
+      "submission_to_commit_ms": {
+        "count": 10,
+        "minimum": 0.0367,
+        "median": 0.18375,
+        "maximum": 0.2365
+      },
+      "reporting_duration_ms": {
+        "count": 10,
+        "minimum": 500.2062,
+        "median": 500.5709,
+        "maximum": 500.8284
+      },
+      "total_submit_response_ms": {
+        "count": 10,
+        "minimum": 500.3288,
+        "median": 500.82725,
+        "maximum": 501.0389
+      },
+      "median_response_increase_vs_normal_ms": 500.78185
+    },
+    {
+      "scenario": "C_reporting_delay_2s",
+      "reporting_delay_seconds": 2.0,
+      "reporting_failure_configured": false,
+      "trials": 10,
+      "completed_receipts": 10,
+      "reporting_pending_true": 0,
+      "successful_simulated_commits": 10,
+      "commit_exactly_once_trials": 10,
+      "reporting_successes": 10,
+      "reporting_failures": 0,
+      "commit_before_reporting_trials": 10,
+      "sequence_valid_trials": 10,
+      "submission_to_commit_ms": {
+        "count": 10,
+        "minimum": 0.1122,
+        "median": 0.256,
+        "maximum": 0.4222
+      },
+      "reporting_duration_ms": {
+        "count": 10,
+        "minimum": 2000.2201,
+        "median": 2000.4194,
+        "maximum": 2000.5925
+      },
+      "total_submit_response_ms": {
+        "count": 10,
+        "minimum": 2000.5637,
+        "median": 2000.6967,
+        "maximum": 2001.055
+      },
+      "median_response_increase_vs_normal_ms": 2000.6513
+    },
+    {
+      "scenario": "D_reporting_failure_after_commit",
+      "reporting_delay_seconds": 0.0,
+      "reporting_failure_configured": true,
+      "trials": 10,
+      "completed_receipts": 10,
+      "reporting_pending_true": 10,
+      "successful_simulated_commits": 10,
+      "commit_exactly_once_trials": 10,
+      "reporting_successes": 0,
+      "reporting_failures": 10,
+      "commit_before_reporting_trials": 10,
+      "sequence_valid_trials": 10,
+      "submission_to_commit_ms": {
+        "count": 10,
+        "minimum": 0.064,
+        "median": 0.2084,
+        "maximum": 0.3097
+      },
+      "reporting_duration_ms": {
+        "count": 10,
+        "minimum": 0.001,
+        "median": 0.00275,
+        "maximum": 0.0032
+      },
+      "total_submit_response_ms": {
+        "count": 10,
+        "minimum": 0.0774,
+        "median": 0.25065,
+        "maximum": 0.3442
+      },
+      "median_response_increase_vs_normal_ms": 0.20525
+    }
+  ],
+  "human_summary": "L2 - Layered coordinator/reporting simulation\nPython 3.12.4; Git 1bd8790ae29a01007c55b41dc3ef76c396b065df; working tree dirty=True.\nA_normal_reporting: completed=10/10; response median=0.045ms; reporting median=0.001ms; report failures=0; reporting_pending=0.\nB_reporting_delay_0_5s: completed=10/10; response median=500.827ms; reporting median=500.571ms; report failures=0; reporting_pending=0.\nC_reporting_delay_2s: completed=10/10; response median=2000.697ms; reporting median=2000.419ms; report failures=0; reporting_pending=0.\nD_reporting_failure_after_commit: completed=10/10; response median=0.251ms; reporting median=0.003ms; report failures=10; reporting_pending=10.\nReporting recovery was not evaluated because ReportingService.catch_up remains unfinished."
+}
