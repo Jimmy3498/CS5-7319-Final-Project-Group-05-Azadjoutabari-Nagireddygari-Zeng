@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from event_based.bootstrap import build as event_based
@@ -13,7 +14,12 @@ from shared.models.common import RequestContext, SecretInput
 def main() -> None:
     context = RequestContext("structural-probe", None, "probe-correlation")
     command = RegisterAccount("probe", SecretInput("NOT-A-REAL-PASSWORD"))
-    direct, queued = layered(), event_based(start_worker=False)
+    temporary = TemporaryDirectory()
+    root = Path(temporary.name)
+    direct, queued = (
+        layered(root / "layered"),
+        event_based(root / "event_based", start_worker=False),
+    )
     try:
         result = direct.submit(context, command, "probe-request")
         pending = queued.submit(context, command, "probe-request")
@@ -33,6 +39,7 @@ def main() -> None:
     finally:
         direct.close()
         queued.close()
+        temporary.cleanup()
 
 
 if __name__ == "__main__":

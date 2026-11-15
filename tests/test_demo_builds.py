@@ -144,7 +144,8 @@ class DemoBuildTests(unittest.TestCase):
                     assert receipt.status.value == "pending"
                     host.bus.dispatch_one()
                     receipt = host.poll(context, receipt.operation_id)
-                assert receipt.status.value == "unimplemented"
+                assert receipt.status.value == "completed", receipt.message
+                assert receipt.result.username == "test"
             finally:
                 host.close()
             app = AppTest.from_file(str(root / package / "streamlit_app.py")).run(timeout=20)
@@ -154,7 +155,8 @@ class DemoBuildTests(unittest.TestCase):
                 assert all(widget.label != "Architecture" for widget in app.selectbox)
                 assert any(c.value == "Running: " + label for c in app.caption)
             assert not any(name.split(".")[0] == opposite for name in sys.modules)
-            assert not (root / ".local").exists()
+            assert (root / ".local" / package / "application.sqlite3").is_file()
+            assert not (root / ".local" / opposite).exists()
             print(label + ": isolated launch, seven pages and dispatch passed")
         """)
         with tempfile.TemporaryDirectory() as temporary:

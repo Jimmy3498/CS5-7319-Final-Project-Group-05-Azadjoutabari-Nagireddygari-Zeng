@@ -31,12 +31,14 @@ def run(architecture: str, build: Callable[[], ApplicationGateway]) -> None:
     context = RequestContext(st.session_state["_client_session_id"], None, "scaffold-ui")
     ScreenController(host, context).render(page)
     with st.sidebar.expander("Structural wiring probe"):
-        st.caption("Dispatch a test command. Expected result: UNIMPLEMENTED.")
+        st.caption(
+            "Submit an empty registration. Expected result: REJECTED; no account is created."
+        )
         key = f"_probe_{architecture}"
         if st.button("Probe command route"):
             receipt = host.submit(
                 context,
-                RegisterAccount("scaffold-probe", SecretInput("NOT-A-REAL-PASSWORD")),
+                RegisterAccount("", SecretInput("")),
                 str(uuid4()),
             )
             st.session_state[key] = receipt.operation_id

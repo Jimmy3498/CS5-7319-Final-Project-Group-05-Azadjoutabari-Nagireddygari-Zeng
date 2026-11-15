@@ -3,7 +3,9 @@
 import ast
 import sqlite3
 import sys
+from contextlib import closing
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -30,16 +32,17 @@ def main() -> None:
         for name in work.files:
             assert (ROOT / name).is_file(), (work_id, name)
     assert set(COMMAND_TYPES) == set(COMMAND_ROUTES) == set(COMMAND_TOPICS)
-    app = build(start_worker=False)
-    try:
-        for source, destination in FLOW_EDGES:
-            assert source in app.bus.subscriptions and destination in app.bus.subscriptions
-    finally:
-        app.close()
+    with TemporaryDirectory() as temporary:
+        app = build(Path(temporary), start_worker=False)
+        try:
+            for source, destination in FLOW_EDGES:
+                assert source in app.bus.subscriptions and destination in app.bus.subscriptions
+        finally:
+            app.close()
     fixture = load_json((ROOT / "fixtures/thornmere.json").read_text())
     draft = decode(fixture["draft"], CampaignDraft)
     assert any(c.playable for c in draft.content.world.characters)
-    with sqlite3.connect(":memory:") as connection:
+    with closing(sqlite3.connect(":memory:")) as connection:
         connection.executescript((ROOT / "shared/infrastructure/schema.sql").read_text())
         count = connection.execute(
             "SELECT count(*) FROM sqlite_master WHERE type='table'"

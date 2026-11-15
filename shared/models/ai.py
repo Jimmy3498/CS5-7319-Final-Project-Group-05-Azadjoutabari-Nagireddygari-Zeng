@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from .common import SecretInput
-from .world import CampaignContent, WorldDefinition
+from .world import CampaignContent, TextRecord, WorldDefinition
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,11 @@ class DirectorContext:
     revision: int
     world: WorldDefinition
     player_input: str
+    player_character_id: str = ""
+    flag_values: tuple[tuple[str, bool], ...] = ()
+    disclosed_ids: tuple[str, ...] = ()
+    setup: tuple[TextRecord, ...] = ()
+    accepted_history: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
