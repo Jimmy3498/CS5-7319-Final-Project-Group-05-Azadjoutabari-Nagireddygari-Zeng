@@ -1,17 +1,17 @@
 {
   "experiment_id": "E1",
   "scope": "synthetic connector-level experiment; not end-to-end gameplay throughput",
-  "generated_at_utc": "2026-11-13T19:56:16.573759+00:00",
+  "generated_at_utc": "2026-11-16T19:33:43.885078+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "1bd8790ae29a01007c55b41dc3ef76c396b065df",
-      "working_tree_dirty": true,
+      "commit_sha": "69a72215d012fae592e8f2edb0f2261aa351641b",
+      "working_tree_dirty": false,
       "metadata_error": null
     },
-    "experiment_script_sha256": "1b9018681ca2d32397c9278ab06b8b0dbf75eb92d817b3d5e2fc2e1e6a5e2015"
+    "experiment_script_sha256": "0d4fe020f78a4d8068710580c0c8f37ab5417d8682ea73d01bffb281afd7521f"
   },
   "configuration": {
     "event_topic": "turn.context_prepared",
@@ -35,34 +35,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 5.0,
-      "publication_burst_ms": 0.1662,
-      "total_elapsed_ms": 0.4834,
-      "throughput_events_per_second": 41373.603641,
+      "publication_burst_ms": 0.0855,
+      "total_elapsed_ms": 0.3624,
+      "throughput_events_per_second": 55187.637969,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1931,
-        "mean": 0.237905,
-        "median": 0.23885,
-        "p95": 0.2749,
-        "maximum": 0.2789
+        "minimum": 0.105,
+        "mean": 0.152865,
+        "median": 0.15315,
+        "p95": 0.1942,
+        "maximum": 0.1985
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 0.0021,
-        "mean": 0.003015,
-        "median": 0.00255,
-        "p95": 0.0053,
-        "maximum": 0.0084
+        "minimum": 0.0012,
+        "mean": 0.001685,
+        "median": 0.0014,
+        "p95": 0.0029,
+        "maximum": 0.0046
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 0.1984,
-        "mean": 0.24092,
-        "median": 0.2413,
-        "p95": 0.2771,
-        "maximum": 0.2873
+        "minimum": 0.1079,
+        "mean": 0.15455,
+        "median": 0.1545,
+        "p95": 0.1954,
+        "maximum": 0.1999
       }
     },
     {
@@ -73,34 +73,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 5.0,
-      "publication_burst_ms": 0.2129,
-      "total_elapsed_ms": 0.5571,
-      "throughput_events_per_second": 35900.197451,
+      "publication_burst_ms": 0.0472,
+      "total_elapsed_ms": 0.2071,
+      "throughput_events_per_second": 96571.704491,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.2347,
-        "mean": 0.264105,
-        "median": 0.2626,
-        "p95": 0.2992,
-        "maximum": 0.3036
+        "minimum": 0.0985,
+        "mean": 0.119205,
+        "median": 0.11855,
+        "p95": 0.1332,
+        "maximum": 0.1345
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 0.0023,
-        "mean": 0.002735,
-        "median": 0.0025,
-        "p95": 0.0037,
-        "maximum": 0.0056
+        "minimum": 0.0007,
+        "mean": 0.00092,
+        "median": 0.0007,
+        "p95": 0.0011,
+        "maximum": 0.0039
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 0.2375,
-        "mean": 0.26684,
-        "median": 0.26505,
-        "p95": 0.3016,
-        "maximum": 0.3061
+        "minimum": 0.1024,
+        "mean": 0.120125,
+        "median": 0.11925,
+        "p95": 0.1339,
+        "maximum": 0.1352
       }
     },
     {
@@ -111,34 +111,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 5.0,
-      "publication_burst_ms": 0.1239,
-      "total_elapsed_ms": 0.3585,
-      "throughput_events_per_second": 55788.005579,
+      "publication_burst_ms": 0.1056,
+      "total_elapsed_ms": 0.4226,
+      "throughput_events_per_second": 47326.076668,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1425,
-        "mean": 0.17684,
-        "median": 0.17635,
-        "p95": 0.2106,
-        "maximum": 0.2144
+        "minimum": 0.1343,
+        "mean": 0.240015,
+        "median": 0.2559,
+        "p95": 0.2743,
+        "maximum": 0.2765
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 0.0018,
-        "mean": 0.002115,
-        "median": 0.00195,
-        "p95": 0.0028,
-        "maximum": 0.0041
+        "minimum": 0.0013,
+        "mean": 0.00168,
+        "median": 0.00135,
+        "p95": 0.0032,
+        "maximum": 0.0044
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 0.1466,
-        "mean": 0.178955,
-        "median": 0.1782,
-        "p95": 0.2125,
-        "maximum": 0.2163
+        "minimum": 0.1387,
+        "mean": 0.241695,
+        "median": 0.2572,
+        "p95": 0.2756,
+        "maximum": 0.2779
       }
     },
     {
@@ -149,34 +149,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 25.0,
-      "publication_burst_ms": 0.1496,
-      "total_elapsed_ms": 10010.203,
-      "throughput_events_per_second": 1.997961,
+      "publication_burst_ms": 0.0902,
+      "total_elapsed_ms": 10010.2117,
+      "throughput_events_per_second": 1.99796,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1754,
-        "mean": 4754.83232,
-        "median": 4754.6489,
-        "p95": 9009.2165,
-        "maximum": 9509.6618
+        "minimum": 0.1064,
+        "mean": 4755.1567,
+        "median": 4755.4123,
+        "p95": 9009.4594,
+        "maximum": 9509.8328
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 500.1582,
-        "mean": 500.42261,
-        "median": 500.4503,
-        "p95": 500.6382,
-        "maximum": 500.6581
+        "minimum": 500.2208,
+        "mean": 500.4478,
+        "median": 500.4476,
+        "p95": 500.6747,
+        "maximum": 500.701
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 500.7479,
-        "mean": 5255.25493,
-        "median": 5254.89365,
-        "p95": 9509.6036,
-        "maximum": 10009.9536
+        "minimum": 500.8074,
+        "mean": 5255.6045,
+        "median": 5255.75735,
+        "p95": 9509.8065,
+        "maximum": 10010.0536
       }
     },
     {
@@ -187,34 +187,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 25.0,
-      "publication_burst_ms": 0.1263,
-      "total_elapsed_ms": 10008.2354,
-      "throughput_events_per_second": 1.998354,
+      "publication_burst_ms": 0.0481,
+      "total_elapsed_ms": 10011.8101,
+      "throughput_events_per_second": 1.997641,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1616,
-        "mean": 4753.96788,
-        "median": 4753.9797,
-        "p95": 9007.1368,
-        "maximum": 9507.6156
+        "minimum": 0.0578,
+        "mean": 4755.852585,
+        "median": 4756.0277,
+        "p95": 9010.3613,
+        "maximum": 9511.0061
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 500.1811,
-        "mean": 500.337735,
-        "median": 500.3153,
-        "p95": 500.5589,
-        "maximum": 500.5758
+        "minimum": 500.219,
+        "mean": 500.53276,
+        "median": 500.5387,
+        "p95": 500.7797,
+        "maximum": 500.8785
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 500.5151,
-        "mean": 5254.305615,
-        "median": 5254.3981,
-        "p95": 9507.5449,
-        "maximum": 10007.965
+        "minimum": 500.6365,
+        "mean": 5256.385345,
+        "median": 5256.63135,
+        "p95": 9510.9418,
+        "maximum": 10011.6813
       }
     },
     {
@@ -225,34 +225,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 25.0,
-      "publication_burst_ms": 0.1244,
-      "total_elapsed_ms": 10010.0877,
-      "throughput_events_per_second": 1.997984,
+      "publication_burst_ms": 0.1086,
+      "total_elapsed_ms": 10010.7119,
+      "throughput_events_per_second": 1.99786,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1615,
-        "mean": 4754.902895,
-        "median": 4755.00345,
-        "p95": 9008.9276,
-        "maximum": 9509.2958
+        "minimum": 0.1239,
+        "mean": 4754.972735,
+        "median": 4755.118,
+        "p95": 9009.4179,
+        "maximum": 9509.7796
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 500.1676,
-        "mean": 500.385495,
-        "median": 500.39095,
-        "p95": 500.5916,
-        "maximum": 500.6009
+        "minimum": 500.1958,
+        "mean": 500.47359,
+        "median": 500.5034,
+        "p95": 500.7575,
+        "maximum": 500.7767
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 500.6409,
-        "mean": 5255.28839,
-        "median": 5255.488,
-        "p95": 9509.1928,
-        "maximum": 10009.7449
+        "minimum": 500.6218,
+        "mean": 5255.446325,
+        "median": 5255.56555,
+        "p95": 9509.7321,
+        "maximum": 10010.5371
       }
     }
   ],
@@ -266,43 +266,43 @@
       "maximum_observed_pending_depth": 20,
       "elapsed_ms_per_repetition": {
         "count": 3,
-        "minimum": 0.3585,
-        "mean": 0.466333,
-        "median": 0.4834,
-        "p95": 0.5571,
-        "maximum": 0.5571
+        "minimum": 0.2071,
+        "mean": 0.3307,
+        "median": 0.3624,
+        "p95": 0.4226,
+        "maximum": 0.4226
       },
       "throughput_events_per_second": {
         "count": 3,
-        "minimum": 35900.197451,
-        "mean": 44353.935557,
-        "median": 41373.603641,
-        "p95": 55788.005579,
-        "maximum": 55788.005579
+        "minimum": 47326.076668,
+        "mean": 66361.806376,
+        "median": 55187.637969,
+        "p95": 96571.704491,
+        "maximum": 96571.704491
       },
       "queue_wait_ms": {
         "count": 60,
-        "minimum": 0.1425,
-        "mean": 0.226283,
-        "median": 0.23525,
-        "p95": 0.2902,
-        "maximum": 0.3036
+        "minimum": 0.0985,
+        "mean": 0.170695,
+        "median": 0.1396,
+        "p95": 0.2698,
+        "maximum": 0.2765
       },
       "processing_ms": {
         "count": 60,
-        "minimum": 0.0018,
-        "mean": 0.002622,
-        "median": 0.0024,
-        "p95": 0.0041,
-        "maximum": 0.0084
+        "minimum": 0.0007,
+        "mean": 0.001428,
+        "median": 0.0013,
+        "p95": 0.0032,
+        "maximum": 0.0046
       },
       "end_to_end_ms": {
         "count": 60,
-        "minimum": 0.1466,
-        "mean": 0.228905,
-        "median": 0.2379,
-        "p95": 0.2927,
-        "maximum": 0.3061
+        "minimum": 0.1024,
+        "mean": 0.172123,
+        "median": 0.1413,
+        "p95": 0.2711,
+        "maximum": 0.2779
       }
     },
     {
@@ -314,45 +314,45 @@
       "maximum_observed_pending_depth": 20,
       "elapsed_ms_per_repetition": {
         "count": 3,
-        "minimum": 10008.2354,
-        "mean": 10009.5087,
-        "median": 10010.0877,
-        "p95": 10010.203,
-        "maximum": 10010.203
+        "minimum": 10010.2117,
+        "mean": 10010.911233,
+        "median": 10010.7119,
+        "p95": 10011.8101,
+        "maximum": 10011.8101
       },
       "throughput_events_per_second": {
         "count": 3,
-        "minimum": 1.997961,
-        "mean": 1.9981,
-        "median": 1.997984,
-        "p95": 1.998354,
-        "maximum": 1.998354
+        "minimum": 1.997641,
+        "mean": 1.99782,
+        "median": 1.99786,
+        "p95": 1.99796,
+        "maximum": 1.99796
       },
       "queue_wait_ms": {
         "count": 60,
-        "minimum": 0.1615,
-        "mean": 4754.567698,
-        "median": 4754.4762,
-        "p95": 9009.2165,
-        "maximum": 9509.6618
+        "minimum": 0.0578,
+        "mean": 4755.32734,
+        "median": 4755.5868,
+        "p95": 9010.3613,
+        "maximum": 9511.0061
       },
       "processing_ms": {
         "count": 60,
-        "minimum": 500.1582,
-        "mean": 500.381947,
-        "median": 500.37115,
-        "p95": 500.6009,
-        "maximum": 500.6581
+        "minimum": 500.1958,
+        "mean": 500.484717,
+        "median": 500.4983,
+        "p95": 500.7575,
+        "maximum": 500.8785
       },
       "end_to_end_ms": {
         "count": 60,
-        "minimum": 500.5151,
-        "mean": 5254.949645,
-        "median": 5254.9285,
-        "p95": 9509.6036,
-        "maximum": 10009.9536
+        "minimum": 500.6218,
+        "mean": 5255.812057,
+        "median": 5256.0111,
+        "p95": 9510.9418,
+        "maximum": 10011.6813
       }
     }
   ],
-  "human_summary": "E1 - Single-Worker Queue Bottleneck\nSynthetic connector-level measurements using the production InProcessBus.\nPython 3.12.4; Git 1bd8790ae29a01007c55b41dc3ef76c396b065df; working tree dirty=True.\nConfiguration: 20 events/repetition, 3 repetitions/condition, delays=[0.0, 0.5], workers=1.\ndelay=0.000s: 60/60 completed; mean elapsed=0.466ms; p95 queue wait=0.290ms; mean throughput=44353.936 events/s; max observed pending=20.\ndelay=0.500s: 60/60 completed; mean elapsed=10009.509ms; p95 queue wait=9009.217ms; mean throughput=1.998 events/s; max observed pending=20.\nInterpretation is limited to the current in-memory, single-worker event connector."
+  "human_summary": "E1 - Single-Worker Queue Bottleneck\nSynthetic connector-level measurements using the production InProcessBus.\nPython 3.12.4; Git 69a72215d012fae592e8f2edb0f2261aa351641b; working tree dirty=False.\nConfiguration: 20 events/repetition, 3 repetitions/condition, delays=[0.0, 0.5], workers=1.\ndelay=0.000s: 60/60 completed; mean elapsed=0.331ms; p95 queue wait=0.270ms; mean throughput=66361.806 events/s; max observed pending=20.\ndelay=0.500s: 60/60 completed; mean elapsed=10010.911ms; p95 queue wait=9010.361ms; mean throughput=1.998 events/s; max observed pending=20.\nInterpretation is limited to the current in-memory, single-worker event connector."
 }

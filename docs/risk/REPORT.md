@@ -25,7 +25,7 @@ its consequences, not from whether the harness itself passed.
 
 E1 evaluates how the existing Event-Based connector behaves when a burst of independent events is
 handled by one worker. The production `InProcessBus` has an unbounded in-memory queue and one worker
-that invokes subscribers sequentially. The experiment does not use unfinished gameplay handlers. It
+that invokes subscribers sequentially. The experiment does not use the gameplay handlers. It
 registers one synthetic handler for `turn.context_prepared` and introduces a controlled processing
 delay so that the queueing behavior can be isolated from AI, database and domain behavior.
 
@@ -78,13 +78,13 @@ required timestamps are present and output files have the declared fields. They 
 | Clock | `time.perf_counter_ns()` |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `1bd8790ae29a01007c55b41dc3ef76c396b065df` |
-| Working tree | Dirty; the uncommitted E1 files and results were included in the run |
-| Generated | November 13, 2026 at 19:56 UTC |
+| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Working tree | Clean at experiment start (`working_tree_dirty=false`) |
+| Generated | November 16, 2026 at 19:33 UTC |
 
 The experiment script's SHA-256 digest is retained in the summary JSON so that the results can be
-matched to the exact measured script. The fixed commit SHA alone is insufficient provenance while the
-experiment remains uncommitted.
+matched to the exact measured script. The recorded commit contains the experiment script and tests,
+and the clean-tree flag confirms that no uncommitted source changes were included in the run.
 
 ### Results and comparison
 
@@ -97,14 +97,14 @@ handling or failed processing.
 | Completed events | 60 / 60 | 60 / 60 |
 | Incomplete events | 0 | 0 |
 | Bus errors | 0 | 0 |
-| Mean elapsed time per 20-event burst | 0.466 ms | 10,009.509 ms |
-| Mean queue waiting time | 0.226 ms | 4,754.568 ms |
-| P95 queue waiting time | 0.290 ms | 9,009.217 ms |
-| Maximum queue waiting time | 0.304 ms | 9,509.662 ms |
-| Mean handler processing time | 0.003 ms | 500.382 ms |
-| P95 end-to-end event latency | 0.293 ms | 9,509.604 ms |
-| Maximum end-to-end event latency | 0.306 ms | 10,009.954 ms |
-| Mean observed throughput | 44,353.936 events/s | 1.998 events/s |
+| Mean elapsed time per 20-event burst | 0.331 ms | 10,010.911 ms |
+| Mean queue waiting time | 0.171 ms | 4,755.327 ms |
+| P95 queue waiting time | 0.270 ms | 9,010.361 ms |
+| Maximum queue waiting time | 0.277 ms | 9,511.006 ms |
+| Mean handler processing time | 0.001 ms | 500.485 ms |
+| P95 end-to-end event latency | 0.271 ms | 9,510.942 ms |
+| Maximum end-to-end event latency | 0.278 ms | 10,011.681 ms |
+| Mean observed throughput | 66,361.806 events/s | 1.998 events/s |
 | Maximum observed pending depth | 20 | 20 |
 
 The baseline handler performs essentially no work, so its throughput value is not a production
@@ -121,7 +121,7 @@ event position: the first event began almost immediately, while the last event w
 times the processing requirement of one event:
 
 ```text
-9.009 seconds p95 waiting / 0.5 seconds processing = approximately 18 times
+9.010 seconds p95 waiting / 0.5 seconds processing = approximately 18 times
 ```
 
 The expected processing timeline is therefore serial:
@@ -178,8 +178,8 @@ without starting a background worker or modifying the queue.
 The risk hypothesis is:
 
 > Pending events exist only in process memory. If the bus closes before dispatch, `close()` removes the
-> queued messages and reports shutdown failures, but a new bus cannot restore them because no durable
-> queue or completed recovery implementation exists.
+> queued messages and reports shutdown failures, but a new bus cannot restore them because the queue is
+> not durable and committed-notice recovery does not reconstruct pre-dispatch messages.
 
 This is specifically a **controlled shutdown with queued synthetic messages**. It is not an operating-
 system crash test and does not claim that a successfully processed or committed gameplay turn was
@@ -204,9 +204,10 @@ lost.
 8. Compare submitted, dispatched, discarded and restored event counts without asserting timing
    thresholds.
 
-`CompletionRecovery.recover()` was inspected before the experiment. It remains explicitly unfinished
-and raises the `EVENTS` not-implemented error. It was not invoked, and no recovery result was
-fabricated.
+`CompletionRecovery.recover()` is implemented for durable committed-turn notices. E2 intentionally
+does not invoke it because these `turn.context_prepared` messages are synthetic pre-dispatch work and
+have no committed notice. The experiment therefore does not evaluate committed-notice recovery or
+claim that the broader recovery path is absent.
 
 ### Test configuration and provenance
 
@@ -220,9 +221,9 @@ fabricated.
 | Shutdown scenario | Close with all ten messages still queued |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `1bd8790ae29a01007c55b41dc3ef76c396b065df` |
-| Working tree | Dirty; uncommitted experiment/report files were included |
-| Generated | November 13, 2026 at 20:32 UTC |
+| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Working tree | Clean at experiment start (`working_tree_dirty=false`) |
+| Generated | November 16, 2026 at 19:33 UTC |
 
 Raw per-event evidence is available in [E2_raw.csv](results/E2_raw.csv), and configuration, environment
 and aggregate results are retained in [E2_summary.json](results/E2_summary.json).
@@ -232,14 +233,14 @@ and aggregate results are retained in [E2_summary.json](results/E2_summary.json)
 | Measurement | Normal completion | Controlled shutdown with pending messages |
 |---|---:|---:|
 | Events submitted | 10 | 10 |
-| Pending immediately before dispatch/close | 0 after dispatch | 10 |
+| Pending immediately before close | 0 | 10 |
 | Events successfully dispatched | 10 | 0 |
 | Events discarded during shutdown | 0 | 10 |
 | Shutdown failure callbacks | 0 | 10 |
 | Events restored in a fresh bus | 0 | 0 |
 | Final original-bus queue depth | 0 | 0 |
 | Fresh-bus initial queue depth | Not applicable | 0 |
-| Close time | 0.0072 ms | 0.0298 ms |
+| Close time | 0.0070 ms | 0.0282 ms |
 
 The normal scenario accounts for all ten messages as successful dispatches. The queue was empty before
 close, so closing it produced no failures. In the controlled-shutdown scenario, none of the ten handlers
@@ -259,7 +260,8 @@ This result is specific to the current design choices:
 - `InProcessBus` stores messages only in process memory.
 - `close()` deliberately drains undispatched messages instead of persisting or transferring them.
 - A new bus creates a new empty queue.
-- `CompletionRecovery.recover()` is unfinished.
+- `CompletionRecovery.recover()` republishes durable committed notices, not arbitrary queued
+  pre-commit messages such as the synthetic context events used here.
 
 Event-Based architecture as a general style does not inherently lose pending events. It can use a
 durable broker, transactional outbox, persistent consumer offsets, acknowledgement/redelivery policies
@@ -273,8 +275,8 @@ in-memory connector and lifecycle policy, not a universal defect of event-driven
 - No worker is started, making the pending/discarded boundary deterministic.
 - The experiment does not test an in-flight handler or cancellation of a running network call.
 - No durable repository or external broker participates.
-- Because recovery is unfinished, E2 can only observe the empty fresh bus; it cannot evaluate a future
-  recovery implementation.
+- The implemented committed-notice recovery path is outside E2's scope; the experiment only observes
+  whether a fresh bare bus restores these synthetic queued messages.
 
 ### Scenario summary and why this is a risk
 
@@ -286,12 +288,12 @@ convert discarded messages into recovered work.
 
 This should be considered a risk because application shutdown can occur while valid operations are
 waiting in the queue. Under the current design, error callbacks can report that the work was abandoned,
-but they cannot make it durable or restore it after restart. Users may need to resubmit operations, and
-without durable request state the application may not know whether work was never started, partially
-executed elsewhere or safe to retry. The impact becomes more likely when E1's single-worker bottleneck
-creates a larger or longer-lived backlog. Appropriate mitigations could include graceful admission
-shutdown and queue draining, durable messaging, persistent operation receipts, an outbox/recovery path
-and explicit retry semantics. Those mitigations were intentionally not implemented by E2.
+but they cannot make the queued message durable or restore it after restart. Although the application
+persists turn attempts and recovers committed notices, E2 does not demonstrate reconstruction of an
+abandoned pre-commit stage; explicit retry may still be required. The impact becomes more likely when
+E1's single-worker bottleneck creates a larger or longer-lived backlog. Appropriate mitigations could
+include graceful admission shutdown and queue draining, durable messaging, reconstruction from
+persistent operation receipts and explicit retry semantics. Those mitigations were not evaluated by E2.
 
 ## L1 — Layered Architecture Synchronous AI Latency
 
@@ -299,7 +301,7 @@ and explicit retry semantics. Those mitigations were intentionally not implement
 
 L1 measures how two sequential AI stages affect response time in the actual Layered coordination path.
 It instantiates the real `LayeredApplication` and `LayeredGateway`, injects deterministic lightweight
-collaborators for unfinished business services, and submits a real `SubmitTurn` through
+collaborators to isolate coordinator latency, and submits a real `SubmitTurn` through
 `LayeredGateway.submit()`.
 
 The experiment is labeled **Layered coordinator simulation using controlled AI-service delays**. It
@@ -347,9 +349,9 @@ normal test-suite execution.
 | AI provider | Controlled fake; no network or external API |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `1bd8790ae29a01007c55b41dc3ef76c396b065df` |
-| Working tree | Dirty; uncommitted risk experiments and results were included |
-| Generated | November 13, 2026 at 20:45 UTC |
+| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Working tree | Clean at experiment start (`working_tree_dirty=false`) |
+| Generated | November 16, 2026 at 19:37 UTC |
 
 Raw trial evidence is available in [L1_raw.csv](results/L1_raw.csv), and aggregate statistics and
 provenance are retained in [L1_summary.json](results/L1_summary.json).
@@ -366,19 +368,19 @@ prepare -> plan start -> plan finish -> validate/project -> narrate start
 
 | Delay per AI call | Expected combined delay | Planning median | Narration median | Response min | Response median | Response max |
 |---:|---:|---:|---:|---:|---:|---:|
-| 0 s | 0 s | 0.001 ms | 0.001 ms | 0.039 ms | 0.045 ms | 0.197 ms |
-| 0.5 s | 1 s | 500.514 ms | 500.323 ms | 1,000.820 ms | 1,001.085 ms | 1,001.523 ms |
-| 2 s | 4 s | 2,000.416 ms | 2,000.411 ms | 4,000.636 ms | 4,001.193 ms | 4,001.899 ms |
-| 4 s | 8 s | 4,000.447 ms | 4,000.453 ms | 8,001.126 ms | 8,001.265 ms | 8,001.381 ms |
-| 6 s | 12 s | 6,000.532 ms | 6,000.546 ms | 12,001.060 ms | 12,001.334 ms | 12,002.005 ms |
+| 0 s | 0 s | 0.001 ms | 0.001 ms | 0.050 ms | 0.093 ms | 0.195 ms |
+| 0.5 s | 1 s | 500.439 ms | 500.644 ms | 1,000.982 ms | 1,001.232 ms | 1,001.561 ms |
+| 2 s | 4 s | 2,000.551 ms | 2,000.457 ms | 4,000.721 ms | 4,001.180 ms | 4,001.831 ms |
+| 4 s | 8 s | 4,000.521 ms | 4,000.540 ms | 8,001.039 ms | 8,001.268 ms | 8,001.477 ms |
+| 6 s | 12 s | 6,000.523 ms | 6,000.431 ms | 12,000.905 ms | 12,001.290 ms | 12,001.557 ms |
 
 | Delay per call | Median submission-to-commit | Median non-AI overhead | Median response attributed to AI |
 |---:|---:|---:|---:|
-| 0 s | 0.038 ms | 0.044 ms | 2.889% |
-| 0.5 s | 1,001.024 ms | 0.265 ms | 99.974% |
-| 2 s | 4,001.121 ms | 0.325 ms | 99.992% |
-| 4 s | 8,001.200 ms | 0.406 ms | 99.995% |
-| 6 s | 12,001.235 ms | 0.426 ms | 99.997% |
+| 0 s | 0.080 ms | 0.091 ms | 1.943% |
+| 0.5 s | 1,001.182 ms | 0.234 ms | 99.975% |
+| 2 s | 4,001.119 ms | 0.261 ms | 99.994% |
+| 4 s | 8,001.214 ms | 0.305 ms | 99.996% |
+| 6 s | 12,001.222 ms | 0.318 ms | 99.997% |
 
 The results closely match the sum of the two controlled delays. At 0.5 seconds per call, the median
 response was approximately one second. At six seconds per call, it was approximately twelve seconds.
@@ -422,7 +424,7 @@ architecture's simplicity goals.
 
 L2 evaluates the performance and reliability consequences of calling reporting synchronously after a
 gameplay commit in the Layered architecture. It uses the real `LayeredApplication` and `LayeredGateway`
-with deterministic collaborators for unfinished business services. The gameplay double maintains a
+with deterministic collaborators that isolate reporting behavior. The gameplay double maintains a
 simple synthetic committed-state record, while the reporting double can complete immediately, complete
 after a controlled delay or raise a controlled exception after commit.
 
@@ -459,8 +461,9 @@ L2 evaluates two related hypotheses:
 10. For failure trials, verify that the synthetic committed-state entry remains present and that the
     gateway operation remains `completed`.
 
-`ReportingService.catch_up()` was inspected before execution and remains explicitly unfinished.
-Recovery was not invoked or evaluated.
+`ReportingService.catch_up()` is implemented, but recovery was not invoked or evaluated by L2. The
+separate gameplay integration tests exercise durable pending-notice catch-up after restart without
+repeating provider calls.
 
 ### Test configuration and provenance
 
@@ -477,9 +480,9 @@ Recovery was not invoked or evaluated.
 | AI | Zero-delay deterministic double reused from L1 |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `1bd8790ae29a01007c55b41dc3ef76c396b065df` |
-| Working tree | Dirty; uncommitted experiments and results were included |
-| Generated | November 13, 2026 at 20:53 UTC |
+| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Working tree | Clean at experiment start (`working_tree_dirty=false`) |
+| Generated | November 16, 2026 at 19:33 UTC |
 
 The L2 summary records SHA-256 digests for both the L2 script and the reused L1 fixture module. Raw
 trial evidence is available in [L2_raw.csv](results/L2_raw.csv), and aggregate statistics and provenance
@@ -489,13 +492,13 @@ are retained in [L2_summary.json](results/L2_summary.json).
 
 | Scenario | Reporting median | Response minimum | Response median | Response maximum | Median increase vs. normal |
 |---|---:|---:|---:|---:|---:|
-| A: no delay, success | 0.001 ms | 0.035 ms | 0.045 ms | 0.128 ms | 0 ms |
-| B: 0.5 s delay, success | 500.571 ms | 500.329 ms | 500.827 ms | 501.039 ms | 500.782 ms |
-| C: 2 s delay, success | 2,000.419 ms | 2,000.564 ms | 2,000.697 ms | 2,001.055 ms | 2,000.651 ms |
-| D: immediate failure | 0.003 ms | 0.077 ms | 0.251 ms | 0.344 ms | 0.205 ms |
+| A: no delay, success | 0.001 ms | 0.040 ms | 0.042 ms | 0.144 ms | 0 ms |
+| B: 0.5 s delay, success | 500.517 ms | 500.432 ms | 500.649 ms | 500.902 ms | 500.608 ms |
+| C: 2 s delay, success | 2,000.437 ms | 2,000.397 ms | 2,000.750 ms | 2,000.974 ms | 2,000.708 ms |
+| D: immediate failure | 0.002 ms | 0.119 ms | 0.139 ms | 0.332 ms | 0.098 ms |
 
 The controlled reporting delay was added almost one-for-one to the gateway's response time. In scenario
-B, a 0.5-second reporting delay increased median response time by approximately 500.8 ms. In scenario
+B, a 0.5-second reporting delay increased median response time by approximately 500.6 ms. In scenario
 C, a 2-second delay increased it by approximately 2,000.7 ms. Gameplay had already reached the
 synthetic commit point, but `submit()` still waited for reporting to return.
 
@@ -526,8 +529,8 @@ real SQLite transaction or pending notification survives process failure.
 - The experiment does not test process restart, notification persistence, reporting deduplication or
   milestone correctness.
 - Only immediate post-commit reporting failure is injected; partial reporting writes are not modeled.
-- `ReportingService.catch_up()` remains unfinished, so recovery and eventual projection freshness were
-  not evaluated.
+- The implemented `ReportingService.catch_up()` path is outside this experiment, so L2 does not measure
+  restart recovery time or eventual projection freshness.
 
 ### Scenario summary and why this is a risk
 
@@ -539,12 +542,13 @@ Slow reporting can therefore make accepted gameplay appear slow or unresponsive.
 
 On the reliability side, the Layered coordinator correctly caught all ten controlled reporting
 exceptions after commit. It returned completed gameplay results with `reporting_pending=True`, retained
-the synthetic committed-state entry and did not repeat the commit. However, the pending marker alone
-does not provide recovery: the real reporting service, durable notification repository and `catch_up()`
-path remain unfinished. The residual risk is that analytics and milestone projections can remain stale
-after a reporting failure, with no demonstrated mechanism to catch up after restart. Potential
-mitigations include keeping reporting outside the response-critical path, durable pending notices,
-idempotent reporting updates, projection-freshness indicators and an implemented catch-up process.
+the synthetic committed-state entry and did not repeat the commit. The production implementation also
+has durable pending notices and an idempotent `catch_up()` path, and the broader integration suite tests
+restart catch-up without another provider call. L2 itself does not measure that recovery path, so its
+reliability conclusion is limited to immediate post-commit failure isolation. The remaining concerns are
+temporary projection staleness until catch-up runs and the lack of a recovery-time measurement. Keeping
+reporting outside the response-critical path and exposing projection freshness would further reduce
+those effects.
 
 ## Cross-Experiment Risk Analysis and Final Assessment
 
@@ -552,16 +556,17 @@ idempotent reporting updates, projection-freshness indicators and an implemented
 
 The four experiments evaluate different failure and delay mechanisms in the two architectural
 implementations. E1 and E2 exercise the real Event-Based queue connector. L1 and L2 exercise the real
-Layered gateway and application coordinator with deterministic substitutes for unfinished services.
+Layered gateway and application coordinator with deterministic collaborators that isolate latency and
+reporting behavior.
 Together, they show that both designs preserve some intended structural properties while exposing
 different operational risks.
 
 | Experiment | Architecture and concern | Principal observed evidence | Risk demonstrated |
 |---|---|---|---|
-| E1 | Event-Based: single-worker queue | A 0.5 s handler limited service to 1.998 events/s; p95 queue wait reached 9.009 s for a 20-event burst | Head-of-line blocking, latency amplification and backlog growth |
+| E1 | Event-Based: single-worker queue | A 0.5 s handler limited service to 1.998 events/s; p95 queue wait reached 9.010 s for a 20-event burst | Head-of-line blocking, latency amplification and backlog growth |
 | E2 | Event-Based: controlled shutdown | 10 queued events produced 0 dispatches, 10 shutdown discards and 0 restorations in a fresh bus | Pending work is nondurable under the current queue lifecycle |
 | L1 | Layered: two synchronous AI stages | A 6 s delay in each AI call produced a 12.001 s median `submit()` response | Sequential external-service latency is passed directly to the caller |
-| L2 | Layered: synchronous reporting | A 2 s reporting delay added 2.001 s to median response; 10/10 reporting failures preserved one commit and returned `reporting_pending=True` | Reporting adds critical-path latency; immediate failure is isolated, but recovery is unproved |
+| L2 | Layered: synchronous reporting | A 2 s reporting delay added 2.001 s to median response; 10/10 reporting failures preserved one commit and returned `reporting_pending=True` | Reporting adds critical-path latency; immediate failure is isolated, while catch-up is covered outside L2 |
 
 All four experiment harnesses passed their correctness assertions. That result means the measurements
 are internally accounted for: messages and trials were unique, expected calls occurred, ordering was
@@ -621,11 +626,11 @@ reporting failure from being mislabeled as gameplay failure. All ten injected re
 completed gameplay results, set `reporting_pending=True`, preserved the synthetic state record and did
 not repeat the commit. This reduces immediate failure coupling between gameplay and analytics.
 
-The remaining reliability concern is recovery rather than immediate isolation. A pending flag informs
-the caller that reporting is behind, but `ReportingService.catch_up()`, durable pending notices and the
-repository implementations are unfinished. The current evidence therefore supports the claim that the
-control flow preserves an accepted synthetic result; it does not support a claim that reporting will
-eventually recover after restart.
+The experiment evidence supports immediate isolation but does not by itself establish recovery time.
+Outside L2, the current implementation includes SQLite-backed pending notices and
+`ReportingService.catch_up()`, and the Layered and Event-Based gameplay tests exercise restart recovery
+without repeating provider calls. This reduces the residual reliability risk to temporary reporting lag
+and recovery observability rather than a missing catch-up mechanism.
 
 ### Comparative risk view
 
@@ -634,17 +639,17 @@ eventually recover after restart.
 | Request behavior | Publication can return before handling, but work waits on one worker | Caller remains inside the complete ordered workflow |
 | Slow external work | Can block all later events on the worker and grow the queue | Directly increases the initiating caller's response time |
 | Failure visibility | Shutdown callback identifies discarded queued work | Gateway returns a completed result with reporting marked pending |
-| Durability demonstrated | None for the in-memory queue; fresh bus restored 0 events | None for fake commits; SQLite repositories remain unfinished |
-| Recovery demonstrated | No; `CompletionRecovery.recover()` is unfinished | No; `ReportingService.catch_up()` is unfinished |
+| Durability demonstrated | E2 demonstrates none for queued synthetic pre-commit messages; committed notices are durable outside E2 | L1/L2 use fake commits; SQLite durability is covered by separate gameplay tests |
+| Recovery demonstrated | Not by E2; committed-notice restart recovery is implemented and tested elsewhere | Not by L2; `ReportingService.catch_up()` is implemented and tested elsewhere |
 | Current strength | Indirect publication and subscriber failure isolation | Explicit sequencing and post-commit reporting-failure isolation |
-| Principal current risk | Backlog plus nondurable pending events | Accumulated synchronous latency plus stale reporting after failure |
+| Principal current risk | Backlog plus nondurable queued pre-commit events | Accumulated synchronous latency plus temporary reporting lag after failure |
 
 The experiments do not establish that one architecture is universally superior. They used different
 controlled scenarios and did not run functionally equivalent completed gameplay implementations under
 the same workload. They do show the practical tradeoff anticipated by the project proposal: the Layered
 style makes ordering and failure boundaries explicit but exposes callers to sequential latency, while the
 Event-Based style can separate submission from processing but requires deliberate queue capacity,
-durability, recovery and concurrency policies.
+pre-commit durability, recovery and concurrency policies.
 
 ### Risk priority and recommended actions
 
@@ -654,38 +659,40 @@ the project inside the experiments.
 1. **Define measurable service objectives and operational metrics.** Record queue depth, queue wait,
    provider latency, reporting lag, operation age and incomplete-operation counts. Without thresholds,
    the system can observe delay but cannot determine when to reject, shed or escalate work.
-2. **Make admitted work and post-commit notices durable.** Implement durable request receipts, pending
-   completion notices, consumer acknowledgements and restart recovery before claiming reliable delivery.
-   Recovery must redeliver committed notifications without automatically replaying paid AI requests.
+2. **Clarify and extend the durability boundary.** Durable committed notices, consumer acknowledgements
+   and restart recovery now exist. Decide which admitted pre-commit operations also require persistence,
+   and document which work must be explicitly retried after queue shutdown.
 3. **Choose and test an Event-Based capacity policy.** Consider bounded admission, backpressure,
    workload-specific queues or carefully partitioned workers. Preserve per-session ordering and verify
    idempotency before adding concurrency.
 4. **Keep reporting outside the player-critical path where practical.** The L2 failure boundary already
    treats reporting as secondary to committed gameplay. Background processing should retain that
-   semantic separation while adding durable notification and projection-freshness handling.
+   semantic separation and reuse the existing durable notification and idempotent catch-up behavior.
 5. **Bound Layered external-call latency.** Apply explicit provider deadlines, cancellation and visible
    operation status. If long-running turns become asynchronous, retain the Layered workflow's validation,
    commit ordering and explicit retry rules.
-6. **Implement and test recovery paths.** Complete `CompletionRecovery.recover()` and
-   `ReportingService.catch_up()`, then inject interruption after commit and verify eventual delivery,
-   deduplication and zero repeated provider calls.
-7. **Repeat the experiments after business implementation.** Use the same campaign, commands, scripted
-   provider responses and persistence semantics through both gateways. This is required before drawing
+6. **Expand recovery fault injection.** The current gameplay tests cover restart catch-up, deduplication
+   and zero repeated provider calls. Add interruption points during handler execution and partial
+   reporting writes, and measure recovery time and projection staleness.
+7. **Run a matched end-to-end comparison.** Use the same campaign, commands, scripted provider responses
+   and persistence semantics through both completed gateways. This is required before drawing
    end-to-end performance or architecture-selection conclusions.
 
 ### Final thought
 
 The experiments reveal risks rather than defects in the architectural styles themselves. The most
-significant Event-Based exposure is the combination of a single unbounded worker queue and no durable
-recovery: slow work can accumulate, and pending work is discarded during the tested controlled shutdown.
+significant Event-Based exposure is the combination of a single unbounded worker queue and no durability
+for queued pre-commit messages: slow work can accumulate, and that pending work is discarded during the
+tested controlled shutdown. Durable committed-notice recovery exists, but it begins after the boundary
+tested by E2.
 The most significant Layered exposure is cumulative synchronous latency: planning, narration and
 reporting all delay the caller in their defined order. The Layered coordinator does, however, already
 contain a useful reliability boundary that prevents reporting failure from reversing or falsely failing
 an accepted synthetic turn.
 
-At the current scaffold stage, the evidence favors strengthening both implementations rather than
-declaring a winner. The Event-Based version needs explicit capacity, durability and recovery semantics.
-The Layered version needs latency bounds and removal of secondary reporting work from the response path,
-while preserving its clear commit-before-reporting rule. Final architectural judgment should be deferred
-until the repositories, AI adapter, gameplay validation and recovery mechanisms are implemented and the
-same end-to-end scenarios can be run through both systems.
+At the current MVP stage, the evidence favors strengthening both implementations rather than declaring
+a winner. The Event-Based version needs an explicit capacity policy and a documented durability boundary
+for admitted pre-commit work. The Layered version needs latency bounds and removal of secondary reporting
+work from the response path while preserving its clear commit-before-reporting rule. Final architectural
+judgment should be deferred until the same end-to-end workload is measured through both completed
+gateways.
