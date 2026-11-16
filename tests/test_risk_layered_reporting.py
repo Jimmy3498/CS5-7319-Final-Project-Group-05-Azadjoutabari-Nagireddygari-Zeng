@@ -78,6 +78,8 @@ class LayeredReportingRiskTests(unittest.TestCase):
             self.assertEqual(tuple(lines[0].split(",")), RAW_FIELDS)
             self.assertEqual(len(lines), 3)
             self.assertIn("reporting simulation", summary["label"])
+            self.assertIn("is implemented", summary["configuration"]["catch_up_status"])
+            self.assertIn("outside this experiment", summary["configuration"]["catch_up_status"])
 
 
 if __name__ == "__main__":

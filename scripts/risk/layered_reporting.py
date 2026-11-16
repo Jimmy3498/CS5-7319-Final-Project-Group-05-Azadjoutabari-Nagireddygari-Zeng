@@ -471,7 +471,10 @@ def build_summary(
         "configuration": {
             "repetitions_per_scenario": max((len(values) for _, values in grouped), default=0),
             "scenarios": [scenario.__dict__ for scenario, _ in grouped],
-            "catch_up_status": "ReportingService.catch_up is unimplemented; recovery not evaluated",
+            "catch_up_status": (
+                "ReportingService.catch_up is implemented; recovery is outside this experiment "
+                "and was not evaluated"
+            ),
         },
         "conditions": conditions,
     }
@@ -498,7 +501,8 @@ def human_summary(summary: dict[str, object]) -> str:
             f"reporting_pending={condition['reporting_pending_true']}."
         )
     lines.append(
-        "Reporting recovery was not evaluated because ReportingService.catch_up remains unfinished."
+        "ReportingService.catch_up is implemented, but reporting recovery was outside this "
+        "experiment and was not evaluated."
     )
     return "\n".join(lines)
 

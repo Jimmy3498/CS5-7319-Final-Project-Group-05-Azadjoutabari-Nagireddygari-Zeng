@@ -71,6 +71,14 @@ class EventShutdownRiskTests(unittest.TestCase):
             self.assertEqual(summary["scenarios"][1]["events_discarded_during_shutdown"], 3)
             self.assertEqual(summary["scenarios"][1]["events_restored_in_fresh_bus"], 0)
             self.assertIn("not an unexpected crash", summary["scope"])
+            self.assertIn(
+                "implemented for durable committed notices",
+                summary["configuration"]["recovery_status"],
+            )
+            self.assertIn(
+                "does not restore these synthetic pre-dispatch messages",
+                summary["configuration"]["recovery_status"],
+            )
 
 
 if __name__ == "__main__":

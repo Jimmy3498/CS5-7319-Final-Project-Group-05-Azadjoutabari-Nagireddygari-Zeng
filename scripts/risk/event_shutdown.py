@@ -322,7 +322,10 @@ def build_summary(
             "event_topic": Topic.TURN_CONTEXT.value,
             "events_per_scenario": len(results[0].submitted) if results else 0,
             "background_worker_started": False,
-            "recovery_status": "CompletionRecovery.recover is unimplemented and was not invoked",
+            "recovery_status": (
+                "CompletionRecovery.recover is implemented for durable committed notices; "
+                "it was not invoked and does not restore these synthetic pre-dispatch messages"
+            ),
         },
         "scenarios": scenarios,
         "comparison": scenarios,
