@@ -8,6 +8,7 @@ from event_based.bootstrap import build as build_event_based
 from layered.bootstrap import build as build_layered
 from shared.codec import decode, load_json
 from shared.commands import (
+    AdoptCampaignUpdate,
     CreateCampaign,
     Login,
     PublishCampaign,
@@ -22,6 +23,7 @@ from shared.infrastructure.sqlite import SQLiteStore
 from shared.models.ai import PlayerView
 from shared.models.common import RequestContext, SecretInput
 from shared.models.gameplay import AcceptedTurn
+from shared.models.views import UpdatePreviewView
 from shared.models.world import CampaignDraft
 from shared.queries import Query, QueryKind
 
@@ -283,6 +285,25 @@ class ArchitectureFoundationTests(unittest.TestCase):
         self.assertEqual(summary.base_version_id, state.base_version_id)
         self.assertEqual(summary.revision, 0)
         self.assertTrue(summary.update_available)
+        self.assertIsNotNone(summary.latest_version_id)
+        preview = app.query(
+            context,
+            Query(QueryKind.UPDATE_PREVIEW, state.id, summary.latest_version_id),
+        )
+        self.assertIsInstance(preview, UpdatePreviewView)
+        self.assertTrue(preview.can_adopt)
+        self.submit(
+            app,
+            context,
+            AdoptCampaignUpdate(state.id, summary.latest_version_id, state.revision),
+            "adopt-compatible-update",
+        )
+        state = store.load_session(owner.id, state.id)
+        self.assertEqual(state.base_version_id, summary.latest_version_id)
+        adopted_summary = next(
+            item for item in app.query(context, Query(QueryKind.MY_SESSIONS)) if item.id == state.id
+        )
+        self.assertFalse(adopted_summary.update_available)
 
         other_summaries = app.query(other, Query(QueryKind.MY_SESSIONS))
         self.assertEqual([item.id for item in other_summaries], [second.session_id])

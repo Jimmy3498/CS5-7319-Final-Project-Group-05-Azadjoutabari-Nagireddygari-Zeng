@@ -78,7 +78,7 @@ class ContractStructureTests(unittest.TestCase):
         self.assertEqual(set(c.COMMAND_TYPES), set(COMMAND_TOPICS))
         self.assertEqual(set(c.COMMAND_TYPES), {type(x) for x in commands()})
 
-    def test_unfinished_commands_report_unimplemented(self):
+    def test_invalid_commands_fail_closed_after_authentication(self):
         context = RequestContext("client", None, "correlation")
         direct = layered(self.data_root / "layered")
         self.addCleanup(direct.close)
@@ -89,7 +89,8 @@ class ContractStructureTests(unittest.TestCase):
             receipt = app.submit(context, command, request_id)
             if app is queued:
                 self.assertEqual(receipt.status, OperationStatus.PENDING)
-                self.assertTrue(queued.bus.dispatch_one())
+                while queued.bus.pending:
+                    self.assertTrue(queued.bus.dispatch_one())
                 receipt = queued.poll(context, receipt.operation_id)
             return receipt
 
@@ -104,6 +105,7 @@ class ContractStructureTests(unittest.TestCase):
             c.SaveProviderCard,
             c.ActivateProviderCard,
             c.DeleteProviderCard,
+            c.ReviewEditorProposal,
         )
         password = SecretInput("demo password")
 
@@ -121,13 +123,7 @@ class ContractStructureTests(unittest.TestCase):
                         continue
                     with self.subTest(command=type(command).__name__):
                         receipt = submit(app, command, f"unfinished-{index}")
-                        expected = (
-                            OperationStatus.REJECTED
-                            if isinstance(command, c.RequestEditorProposal)
-                            or (app is direct and isinstance(command, c.SubmitTurn))
-                            else OperationStatus.UNIMPLEMENTED
-                        )
-                        self.assertEqual(receipt.status, expected, receipt.message)
+                        self.assertEqual(receipt.status, OperationStatus.REJECTED, receipt.message)
 
     def test_all_declared_edges_and_independent_completion_consumers_registered(self):
         app = event_based(self.data_root / "event_based", start_worker=False)

@@ -12,6 +12,7 @@ from shared.queries import Query
 from .bus import InProcessBus
 from .handlers import ComponentHandlers
 from .messages import COMMAND_TOPICS, Message, Topic
+from .recovery import CompletionRecovery
 
 
 class EventGateway:
@@ -24,6 +25,8 @@ class EventGateway:
         self.bus = InProcessBus(self._failed)
         self.handlers = ComponentHandlers(services, self.bus, self.statuses)
         self.handlers.register()
+        self.recovery = CompletionRecovery(services, self.bus)
+        self.recovery.recover()
         if start_worker:
             self.bus.start()
 
@@ -31,6 +34,23 @@ class EventGateway:
         if message.topic == Topic.TURN_COMMITTED:
             # A downstream subscriber is not allowed to relabel committed gameplay as failed.
             self.subscriber_failures.append((component, message.operation_id))
+            return
+        if message.topic in {
+            Topic.TURN_REQUEST,
+            Topic.TURN_CONTEXT,
+            Topic.TURN_PLAN,
+            Topic.TURN_VALIDATED,
+            Topic.NARRATION,
+        }:
+            try:
+                self.handlers.fail_turn(message, error)
+            except Exception as failure_error:
+                self.statuses.fail(message.operation_id, failure_error)
+                self.handlers.state.release(message.operation_id)
+            return
+        if message.topic is Topic.TURN_FAILED:
+            self.statuses.fail(message.operation_id, error)
+            self.handlers.state.release(message.operation_id)
             return
         if message.topic in {
             Topic.EDITOR_REQUEST,

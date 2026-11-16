@@ -1,7 +1,8 @@
 """Process-local operation receipts.
 
 Keep raw commands, credentials, provider captures and provider messages out of stored receipts.
-TODO PERSISTENCE: replace transient receipts with durable, authenticated records.
+These receipts intentionally describe the current host/client interaction. Accepted gameplay,
+attempts, and completion notifications are durable in SQLite and resume through queries.
 """
 
 import hashlib

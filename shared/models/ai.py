@@ -11,7 +11,7 @@ class ProviderProfile:
     name: str
     endpoint: str
     model: str
-    protocol: str  # Initially chat-completions-compatible; arbitrary provider APIs are not implied.
+    protocol: str  # One of the explicitly supported HTTP adapters.
     configuration_revision: int
     credential_present: bool
 

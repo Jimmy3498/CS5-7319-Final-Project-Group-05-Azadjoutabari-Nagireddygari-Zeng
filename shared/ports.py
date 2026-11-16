@@ -5,6 +5,7 @@ Application workflows see domain services, not SQL/HTTP/credential implementatio
 
 from typing import Protocol
 
+from .commands import RetryTurn, SubmitTurn
 from .models.accounts import AccountView
 from .models.ai import ProviderCapture, ProviderMessage, ProviderProfile, ProviderResponse
 from .models.common import SecretInput
@@ -92,6 +93,13 @@ class SessionRepository(Protocol):
     ) -> None: ...
     def pending_notifications(self) -> tuple[CommittedTurnNotice, ...]: ...
     def acknowledge_notification(self, consumer: str, event_id: str) -> None: ...
+    def retry_turn(
+        self,
+        owner_id: str,
+        command: RetryTurn,
+        new_operation_id: str,
+        request_id: str,
+    ) -> SubmitTurn | TurnCommit: ...
 
 
 class ProfileRepository(Protocol):

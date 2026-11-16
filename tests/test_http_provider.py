@@ -107,6 +107,75 @@ class HttpProviderTests(unittest.TestCase):
         )
         self.assertNotIn("FAKE-HTTP-KEY", body.decode("utf-8"))
 
+    def test_anthropic_messages_adapter(self):
+        self.capture = replace(
+            self.capture,
+            profile=replace(
+                self.capture.profile,
+                endpoint=self.capture.profile.endpoint.replace(
+                    "/v1/chat/completions", "/v1/messages"
+                ),
+                protocol="anthropic-messages",
+            ),
+        )
+        self.messages = (
+            ProviderMessage("system", "System rule"),
+            ProviderMessage("user", "Hello"),
+        )
+        self.body = json.dumps(
+            {
+                "content": [{"type": "text", "text": "Anthropic hello"}],
+                "stop_reason": "end_turn",
+                "usage": {"input_tokens": 4, "output_tokens": 2},
+            }
+        ).encode()
+        result = self.complete()
+        self.assertEqual(result.content, "Anthropic hello")
+        self.assertEqual(result.finish_reason, "stop")
+        _, headers, body = self.requests[0]
+        self.assertEqual(headers["x-api-key"], "FAKE-HTTP-KEY")
+        payload = json.loads(body)
+        self.assertEqual(payload["system"], "System rule")
+        self.assertEqual(payload["messages"], [{"role": "user", "content": "Hello"}])
+
+    def test_google_generate_content_adapter(self):
+        endpoint = self.capture.profile.endpoint.replace(
+            "/v1/chat/completions", "/v1beta/models/{model}:generateContent"
+        )
+        self.capture = replace(
+            self.capture,
+            profile=replace(
+                self.capture.profile,
+                endpoint=endpoint,
+                model="gemini-test",
+                protocol="google-generate-content",
+            ),
+        )
+        self.messages = (
+            ProviderMessage("system", "System rule"),
+            ProviderMessage("user", "Hello"),
+        )
+        self.body = json.dumps(
+            {
+                "candidates": [
+                    {
+                        "content": {"parts": [{"text": "Gemini hello"}]},
+                        "finishReason": "STOP",
+                    }
+                ],
+                "usageMetadata": {"promptTokenCount": 4, "candidatesTokenCount": 2},
+            }
+        ).encode()
+        result = self.complete()
+        self.assertEqual(result.content, "Gemini hello")
+        self.assertEqual((result.input_tokens, result.output_tokens), (4, 2))
+        path, headers, body = self.requests[0]
+        self.assertIn("/v1beta/models/gemini-test:generateContent", path)
+        self.assertEqual(headers["x-goog-api-key"], "FAKE-HTTP-KEY")
+        payload = json.loads(body)
+        self.assertEqual(payload["systemInstruction"]["parts"], [{"text": "System rule"}])
+        self.assertEqual(payload["contents"][0]["role"], "user")
+
     def test_http_errors_do_not_redirect_retry_or_expose_body(self):
         for status in (302, 307, 401, 429, 503):
             with self.subTest(status=status):

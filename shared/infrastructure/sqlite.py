@@ -8,8 +8,10 @@ from hashlib import sha256
 from pathlib import Path
 from uuid import uuid4
 
-from ..codec import decode, load_json
-from ..errors import ApplicationError, ErrorCode, FeatureNotImplemented
+from ..codec import decode, dump_json, load_json
+from ..commands import RetryTurn, SubmitTurn
+from ..domain.conditions import condition_met
+from ..errors import ApplicationError, ErrorCode
 from ..models.accounts import AccountView
 from ..models.ai import ProviderProfile
 from ..models.common import Access, Visibility
@@ -21,12 +23,13 @@ from ..models.gameplay import (
     TurnAdmission,
     TurnCommit,
 )
-from ..models.reporting import CampaignReport
+from ..models.reporting import CampaignReport, MilestoneCount
 from ..models.views import CampaignSummary
 from ..models.world import (
     CampaignContent,
     CampaignDraft,
     CatalogEntry,
+    EditorChange,
     EditorProposal,
     PublishedCampaign,
     TextRecord,
@@ -334,6 +337,9 @@ class SQLiteStore:
                         for character in content.world.characters
                         if character.playable
                     ),
+                    playable_character_ids=tuple(
+                        character.id for character in content.world.characters if character.playable
+                    ),
                 )
             )
 
@@ -631,7 +637,85 @@ class SQLiteStore:
     def adopt_update(
         self, owner_id: str, operation_id: str, expected_revision: int, candidate: SessionSnapshot
     ) -> SessionSnapshot:
-        raise FeatureNotImplemented("PERSISTENCE")
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                """
+                SELECT campaign_id, base_version_id, revision, state_json
+                FROM playthroughs WHERE id = ? AND owner_id = ?
+                """,
+                (candidate.id, owner_id),
+            ).fetchone()
+            if row is None:
+                raise ApplicationError(ErrorCode.FORBIDDEN, "Session not found or access denied")
+            if row["revision"] != expected_revision or candidate.revision != expected_revision:
+                raise ApplicationError(ErrorCode.CONFLICT, "Session changed before update adoption")
+            if candidate.campaign_id != row["campaign_id"]:
+                raise ApplicationError(ErrorCode.INVALID, "Campaign identity changed")
+            target = db.execute(
+                "SELECT 1 FROM published_versions WHERE id = ? AND campaign_id = ?",
+                (candidate.base_version_id, candidate.campaign_id),
+            ).fetchone()
+            if target is None:
+                raise ApplicationError(ErrorCode.INVALID, "Target campaign version not found")
+            encoded = json.dumps(asdict(candidate), ensure_ascii=False, allow_nan=False)
+            decode(load_json(encoded), SessionSnapshot)
+            now = db.execute("SELECT strftime('%Y-%m-%dT%H:%M:%fZ', 'now')").fetchone()[0]
+            db.execute(
+                """
+                INSERT INTO session_checkpoints (
+                    id, session_id, revision, base_version_id, reason, world_json, created_at
+                ) VALUES (?, ?, ?, ?, 'pre_update', ?, ?)
+                """,
+                (
+                    str(uuid4()),
+                    candidate.id,
+                    expected_revision,
+                    row["base_version_id"],
+                    row["state_json"],
+                    now,
+                ),
+            )
+            db.execute(
+                """
+                UPDATE playthroughs
+                SET base_version_id = ?, state_json = ?, updated_at = ?
+                WHERE id = ? AND owner_id = ? AND revision = ?
+                """,
+                (
+                    candidate.base_version_id,
+                    encoded,
+                    now,
+                    candidate.id,
+                    owner_id,
+                    expected_revision,
+                ),
+            )
+            db.execute(
+                """
+                INSERT OR IGNORE INTO session_version_memberships (
+                    session_id, version_id, entered_at_revision, entered_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (candidate.id, candidate.base_version_id, expected_revision, now),
+            )
+            db.execute(
+                """
+                INSERT INTO session_checkpoints (
+                    id, session_id, revision, base_version_id, reason, world_json, created_at
+                ) VALUES (?, ?, ?, ?, 'update', ?, ?)
+                """,
+                (
+                    str(uuid4()),
+                    candidate.id,
+                    expected_revision,
+                    candidate.base_version_id,
+                    encoded,
+                    now,
+                ),
+            )
+            db.commit()
+        return candidate
 
     def record_attempt_failure(
         self,
@@ -696,10 +780,132 @@ class SQLiteStore:
             db.commit()
 
     def pending_notifications(self) -> tuple[CommittedTurnNotice, ...]:
-        raise FeatureNotImplemented("PERSISTENCE")
+        with closing(self._connect()) as db:
+            rows = db.execute(
+                """
+                SELECT n.identifiers_json
+                FROM pending_notifications AS n
+                WHERE n.kind = 'turn_committed'
+                  AND (
+                    NOT EXISTS (
+                      SELECT 1 FROM consumer_receipts AS r
+                      WHERE r.event_id = n.event_id AND r.consumer_id = 'result'
+                    )
+                    OR NOT EXISTS (
+                      SELECT 1 FROM consumer_receipts AS r
+                      WHERE r.event_id = n.event_id AND r.consumer_id = 'reporting'
+                    )
+                  )
+                ORDER BY n.created_at, n.event_id
+                """
+            ).fetchall()
+        return tuple(
+            decode(load_json(row["identifiers_json"]), CommittedTurnNotice) for row in rows
+        )
 
     def acknowledge_notification(self, consumer: str, event_id: str) -> None:
-        raise FeatureNotImplemented("PERSISTENCE")
+        if consumer not in {"result", "reporting"}:
+            raise ApplicationError(ErrorCode.INVALID, "Unknown completion consumer")
+        with closing(self._connect()) as db:
+            exists = db.execute(
+                "SELECT 1 FROM pending_notifications WHERE event_id = ?", (event_id,)
+            ).fetchone()
+            if exists is None:
+                raise ApplicationError(ErrorCode.INVALID, "Completion notice not found")
+            db.execute(
+                """
+                INSERT OR IGNORE INTO consumer_receipts (event_id, consumer_id, processed_at)
+                VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                """,
+                (event_id, consumer),
+            )
+            db.commit()
+
+    def retry_turn(
+        self,
+        owner_id: str,
+        command: RetryTurn,
+        new_operation_id: str,
+        request_id: str,
+    ) -> SubmitTurn | TurnCommit:
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            prior = db.execute(
+                """
+                SELECT r.status, r.result_json, t.id AS attempt_id,
+                       t.session_id, t.expected_revision, t.player_input
+                FROM operation_receipts AS r
+                JOIN turn_attempts AS t ON t.operation_id = r.operation_id
+                WHERE r.operation_id = ? AND r.owner_id = ? AND r.kind = 'turn'
+                """,
+                (command.previous_operation_id, owner_id),
+            ).fetchone()
+            if prior is None or prior["session_id"] != command.session_id:
+                raise ApplicationError(ErrorCode.FORBIDDEN, "Previous turn not found or denied")
+            if prior["status"] == "completed":
+                return decode(load_json(prior["result_json"]), TurnCommit)
+            if prior["status"] not in {"rejected", "failed"}:
+                raise ApplicationError(ErrorCode.CONFLICT, "Previous turn is not retryable")
+
+            state_row = db.execute(
+                "SELECT state_json FROM playthroughs WHERE id = ? AND owner_id = ?",
+                (command.session_id, owner_id),
+            ).fetchone()
+            if state_row is None:
+                raise ApplicationError(ErrorCode.FORBIDDEN, "Session not found or access denied")
+            state = decode(load_json(state_row["state_json"]), SessionSnapshot)
+            if state.revision != command.expected_revision:
+                raise ApplicationError(
+                    ErrorCode.CONFLICT, "Session changed; reload before retrying"
+                )
+            if command.expected_revision != prior["expected_revision"]:
+                raise ApplicationError(ErrorCode.CONFLICT, "Retry revision differs from prior turn")
+
+            submit = SubmitTurn(
+                command.session_id, command.expected_revision, prior["player_input"]
+            )
+            payload = json.dumps(
+                [submit.session_id, submit.expected_revision, submit.player_input],
+                ensure_ascii=False,
+                separators=(",", ":"),
+                allow_nan=False,
+            )
+            fingerprint = sha256(payload.encode("utf-8")).hexdigest()
+            try:
+                db.execute(
+                    """
+                    INSERT INTO operation_receipts (
+                        operation_id, owner_id, request_id, request_digest,
+                        kind, status, created_at
+                    ) VALUES (?, ?, ?, ?, 'turn', 'running',
+                        strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                    """,
+                    (new_operation_id, owner_id, request_id, fingerprint),
+                )
+                db.execute(
+                    """
+                    INSERT INTO turn_attempts (
+                        id, operation_id, session_id, prior_attempt_id,
+                        expected_revision, state, player_input,
+                        provider_outcome_uncertain, created_at
+                    ) VALUES (?, ?, ?, ?, ?, 'running', ?, 0,
+                        strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                    """,
+                    (
+                        str(uuid4()),
+                        new_operation_id,
+                        submit.session_id,
+                        prior["attempt_id"],
+                        submit.expected_revision,
+                        submit.player_input,
+                    ),
+                )
+            except sqlite3.IntegrityError as error:
+                raise ApplicationError(
+                    ErrorCode.CONFLICT, "Retry request already exists"
+                ) from error
+            db.commit()
+        return submit
 
     def list_profiles(self, owner_id: str) -> tuple[ProviderProfile, ...]:
         with closing(self._connect()) as db:
@@ -776,23 +982,276 @@ class SQLiteStore:
         return row["credential_reference"]
 
     def apply_committed_notice(self, notice: CommittedTurnNotice) -> None:
-        raise FeatureNotImplemented("PERSISTENCE")
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute(
+                """
+                SELECT p.owner_id, p.campaign_id,
+                       before.world_json AS before_json,
+                       after.world_json AS after_json
+                FROM playthroughs AS p
+                JOIN session_checkpoints AS before
+                  ON before.session_id = p.id AND before.revision = ?
+                 AND before.rowid = (
+                   SELECT MAX(b.rowid) FROM session_checkpoints AS b
+                   WHERE b.session_id = p.id AND b.revision = ?
+                 )
+                JOIN session_checkpoints AS after
+                  ON after.session_id = p.id AND after.revision = ? AND after.reason = 'turn'
+                JOIN pending_notifications AS n
+                  ON n.event_id = ? AND n.operation_id = ? AND n.session_id = p.id
+                WHERE p.id = ? AND p.campaign_id = ?
+                """,
+                (
+                    notice.revision - 1,
+                    notice.revision - 1,
+                    notice.revision,
+                    notice.event_id,
+                    notice.operation_id,
+                    notice.session_id,
+                    notice.campaign_id,
+                ),
+            ).fetchone()
+            if row is None:
+                raise ApplicationError(ErrorCode.CONFLICT, "Committed projection source is missing")
+            before = decode(load_json(row["before_json"]), SessionSnapshot)
+            after = decode(load_json(row["after_json"]), SessionSnapshot)
+            if after.base_version_id != notice.base_version_id:
+                raise ApplicationError(ErrorCode.CONFLICT, "Committed projection version changed")
+
+            for marker in after.world.milestones:
+                if condition_met(marker.condition, before) or not condition_met(
+                    marker.condition, after
+                ):
+                    continue
+                db.execute(
+                    """
+                    INSERT OR IGNORE INTO milestone_hits (
+                        session_id, marker_id, definition_fingerprint,
+                        campaign_version_id, owner_id, source_event_id, first_reached_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                    """,
+                    (
+                        notice.session_id,
+                        marker.id,
+                        marker.definition_fingerprint,
+                        notice.base_version_id,
+                        row["owner_id"],
+                        notice.event_id,
+                    ),
+                )
+            db.commit()
 
     def campaign_report(
         self, owner_id: str, campaign_id: str, version_id: str | None
     ) -> CampaignReport:
-        raise FeatureNotImplemented("PERSISTENCE")
+        with closing(self._connect()) as db:
+            campaign = db.execute(
+                "SELECT 1 FROM campaigns WHERE id = ? AND owner_id = ?",
+                (campaign_id, owner_id),
+            ).fetchone()
+            if campaign is None:
+                raise ApplicationError(ErrorCode.FORBIDDEN, "Campaign not found or access denied")
+
+            if version_id is None:
+                version = db.execute(
+                    """
+                    SELECT id, content_json FROM published_versions
+                    WHERE campaign_id = ? ORDER BY version DESC LIMIT 1
+                    """,
+                    (campaign_id,),
+                ).fetchone()
+            else:
+                version = db.execute(
+                    """
+                    SELECT id, content_json FROM published_versions
+                    WHERE id = ? AND campaign_id = ?
+                    """,
+                    (version_id, campaign_id),
+                ).fetchone()
+                if version is None:
+                    raise ApplicationError(
+                        ErrorCode.INVALID, "Published campaign version not found"
+                    )
+
+            selected_version = version["id"] if version is not None else None
+            version_clause = " AND p.base_version_id = ?" if version_id is not None else ""
+            parameters: tuple[object, ...] = (
+                (campaign_id, selected_version) if version_id is not None else (campaign_id,)
+            )
+            summary = db.execute(
+                f"""
+                SELECT COUNT(DISTINCT p.id) AS started,
+                       COALESCE(SUM(CASE WHEN t.state = 'completed' THEN 1 ELSE 0 END), 0)
+                         AS accepted,
+                       COALESCE(SUM(CASE WHEN t.state = 'rejected' THEN 1 ELSE 0 END), 0)
+                         AS rejected,
+                       COALESCE(SUM(CASE WHEN t.state = 'failed' THEN 1 ELSE 0 END), 0)
+                         AS failed,
+                       MAX(COALESCE(a.created_at, p.updated_at)) AS last_activity
+                FROM playthroughs AS p
+                LEFT JOIN turn_attempts AS t ON t.session_id = p.id
+                LEFT JOIN operation_receipts AS r ON r.operation_id = t.operation_id
+                LEFT JOIN accepted_turns AS a ON a.operation_id = r.operation_id
+                WHERE p.campaign_id = ?{version_clause}
+                """,
+                parameters,
+            ).fetchone()
+
+            projection = db.execute(
+                """
+                SELECT MAX(r.processed_at)
+                FROM consumer_receipts AS r
+                JOIN pending_notifications AS n ON n.event_id = r.event_id
+                JOIN playthroughs AS p ON p.id = n.session_id
+                WHERE r.consumer_id = 'reporting' AND p.campaign_id = ?
+                """,
+                (campaign_id,),
+            ).fetchone()[0]
+
+            milestones: list[MilestoneCount] = []
+            if version is not None:
+                content = decode(load_json(version["content_json"]), CampaignContent)
+                for marker in content.world.milestones:
+                    counts = db.execute(
+                        """
+                        SELECT COUNT(DISTINCT h.session_id) AS playthroughs,
+                               COUNT(DISTINCT h.owner_id) AS accounts
+                        FROM milestone_hits AS h
+                        JOIN playthroughs AS p ON p.id = h.session_id
+                        WHERE p.campaign_id = ? AND h.campaign_version_id = ?
+                          AND h.marker_id = ? AND h.definition_fingerprint = ?
+                        """,
+                        (
+                            campaign_id,
+                            selected_version,
+                            marker.id,
+                            marker.definition_fingerprint,
+                        ),
+                    ).fetchone()
+                    eligible = db.execute(
+                        """
+                        SELECT COUNT(DISTINCT id) AS playthroughs,
+                               COUNT(DISTINCT owner_id) AS accounts
+                        FROM playthroughs
+                        WHERE campaign_id = ? AND base_version_id = ?
+                        """,
+                        (campaign_id, selected_version),
+                    ).fetchone()
+                    milestones.append(
+                        MilestoneCount(
+                            marker.id,
+                            marker.definition_fingerprint,
+                            marker.label,
+                            counts["playthroughs"],
+                            counts["accounts"],
+                            eligible["playthroughs"],
+                            eligible["accounts"],
+                        )
+                    )
+
+        return CampaignReport(
+            campaign_id,
+            selected_version if version_id is not None else None,
+            summary["started"],
+            summary["accepted"],
+            summary["rejected"],
+            summary["failed"],
+            summary["last_activity"],
+            projection,
+            tuple(milestones),
+        )
 
     def save_editor_proposal(self, owner_id: str, proposal: EditorProposal) -> None:
-        raise FeatureNotImplemented("PERSISTENCE")
+        if proposal.status != "pending":
+            raise ApplicationError(ErrorCode.INVALID, "New editor proposal must be pending")
+        self.load_draft(owner_id, proposal.campaign_id)
+        try:
+            with closing(self._connect()) as db:
+                db.execute(
+                    """
+                    INSERT INTO editor_proposals (
+                        id, owner_id, campaign_id, base_persisted_revision,
+                        base_buffer_revision, candidate_json, summary, changes_json,
+                        status, created_at, resolved_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending',
+                              strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), NULL)
+                    """,
+                    (
+                        proposal.id,
+                        owner_id,
+                        proposal.campaign_id,
+                        proposal.base_persisted_revision,
+                        proposal.base_buffer_revision,
+                        dump_json(proposal.candidate),
+                        proposal.summary,
+                        dump_json(proposal.changes),
+                    ),
+                )
+                db.commit()
+        except sqlite3.IntegrityError as error:
+            raise ApplicationError(ErrorCode.CONFLICT, "Editor proposal already exists") from error
 
     def load_editor_proposal(self, owner_id: str, proposal_id: str) -> EditorProposal:
-        raise FeatureNotImplemented("PERSISTENCE")
+        with closing(self._connect()) as db:
+            row = db.execute(
+                """
+                SELECT id, owner_id, campaign_id, base_persisted_revision,
+                       base_buffer_revision, candidate_json, summary, changes_json, status
+                FROM editor_proposals
+                WHERE id = ? AND owner_id = ?
+                """,
+                (proposal_id, owner_id),
+            ).fetchone()
+        if row is None:
+            raise ApplicationError(
+                ErrorCode.FORBIDDEN, "Editor proposal not found or access denied"
+            )
+        try:
+            candidate = decode(load_json(row["candidate_json"]), CampaignContent)
+            changes = decode(load_json(row["changes_json"]), tuple[EditorChange, ...])
+        except (TypeError, ValueError) as error:
+            raise ApplicationError(
+                ErrorCode.STORAGE, "Stored editor proposal is invalid"
+            ) from error
+        return EditorProposal(
+            id=row["id"],
+            campaign_id=row["campaign_id"],
+            base_persisted_revision=row["base_persisted_revision"],
+            base_buffer_revision=row["base_buffer_revision"],
+            summary=row["summary"],
+            candidate=candidate,
+            changes=changes,
+            status=row["status"],
+        )
 
     def resolve_editor_proposal(
         self, owner_id: str, proposal_id: str, status: str
     ) -> EditorProposal:
-        raise FeatureNotImplemented("PERSISTENCE")
+        if status not in {"accepted", "rejected"}:
+            raise ApplicationError(ErrorCode.INVALID, "Invalid editor proposal resolution")
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE;")
+            row = db.execute(
+                "SELECT status FROM editor_proposals WHERE id = ? AND owner_id = ?",
+                (proposal_id, owner_id),
+            ).fetchone()
+            if row is None:
+                raise ApplicationError(
+                    ErrorCode.FORBIDDEN, "Editor proposal not found or access denied"
+                )
+            if row["status"] != "pending":
+                raise ApplicationError(ErrorCode.CONFLICT, "Editor proposal was already reviewed")
+            db.execute(
+                """
+                UPDATE editor_proposals
+                SET status = ?, resolved_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+                WHERE id = ? AND owner_id = ?
+                """,
+                (status, proposal_id, owner_id),
+            )
+            db.commit()
+        return self.load_editor_proposal(owner_id, proposal_id)
 
     def drafts_for_owner(self, owner_id: str) -> tuple[CampaignSummary, ...]:
         with closing(self._connect()) as db:
@@ -829,13 +1288,18 @@ class SQLiteStore:
         with closing(self._connect()) as db:
             rows = db.execute(
                 """
-                SELECT s.id, s.base_version_id, s.revision,
+                SELECT s.id, s.campaign_id, s.base_version_id, s.revision,
                        json_extract(p.content_json, '$.title') AS campaign_title,
                        EXISTS (
                            SELECT 1 FROM published_versions AS newer
                            WHERE newer.campaign_id = s.campaign_id
                              AND newer.version > p.version
-                       ) AS update_available
+                       ) AS update_available,
+                       (
+                           SELECT newer.id FROM published_versions AS newer
+                           WHERE newer.campaign_id = s.campaign_id
+                           ORDER BY newer.version DESC LIMIT 1
+                       ) AS latest_version_id
                 FROM playthroughs AS s
                 JOIN published_versions AS p ON p.id = s.base_version_id
                 WHERE s.owner_id = ?
@@ -851,6 +1315,8 @@ class SQLiteStore:
                 base_version_id=row["base_version_id"],
                 revision=row["revision"],
                 update_available=bool(row["update_available"]),
+                campaign_id=row["campaign_id"],
+                latest_version_id=row["latest_version_id"],
             )
             for row in rows
         )
@@ -1117,7 +1583,7 @@ class SQLiteStore:
 
             existing = db.execute(
                 """
-                SELECT request_digest, kind, status, result_json
+                SELECT operation_id, request_digest, kind, status, result_json
                 FROM operation_receipts
                 WHERE owner_id = ? AND request_id = ?
                 """,
@@ -1133,10 +1599,9 @@ class SQLiteStore:
                         baseline=None,
                         previous_commit=decode(load_json(existing["result_json"]), TurnCommit),
                     )
-                raise ApplicationError(
-                    ErrorCode.CONFLICT,
-                    "This request already exists; check its status before retrying",
-                )
+                if existing["operation_id"] == operation_id and existing["status"] == "running":
+                    return TurnAdmission(baseline=state, previous_commit=None)
+                raise ApplicationError(ErrorCode.CONFLICT, "This request already exists")
 
             if state.revision != expected_revision:
                 raise ApplicationError(

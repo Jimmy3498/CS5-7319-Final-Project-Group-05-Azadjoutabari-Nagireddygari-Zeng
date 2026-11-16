@@ -1,5 +1,10 @@
 # Integration changes — November 14, 2026
 
+> November 15 follow-up: completed Event-Based gameplay, reporting/milestones, linked retry,
+> committed-notice recovery, compatible update adoption, friendly authoring forms, and native
+> OpenAI-compatible/Anthropic/Gemini adapters. Added the full queued gameplay/recovery scenario in
+> `tests/test_event_gameplay_mvp.py`. See [STATUS](STATUS.md) for the current checkpoint.
+
 ## Baseline and counts
 
 This checkpoint combines local backend work, Farhad's creative-writing work from main
@@ -39,8 +44,7 @@ Several additions extend existing files rather than create new modules:
 - Session setup and director-context fields carry the opening, private context and accepted history.
 - EditorCompletion, EditorChange and proposal status/diff fields support reviewed editing.
 - EditorWork and private state retention support queued editor stages.
-- The proposal-resolution port and schema columns support editor persistence; their SQLite
-  save/load/resolve bodies are still TODO.
+- The proposal-resolution port, schema columns and SQLite methods support editor persistence.
 - A small v1-to-v2 initialization upgrade adds the editor columns while preserving existing data.
   This is a single schema upgrade, not a general migration framework.
 

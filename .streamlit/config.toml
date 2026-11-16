@@ -1,5 +1,28 @@
 [browser]
 gatherUsageStats = false
+
 [server]
 address = "127.0.0.1"
 headless = true
+
+[theme]
+base = "light"
+primaryColor = "#4F46E5"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F7FB"
+textColor = "#1F2937"
+borderColor = "#DDE2EA"
+font = "sans-serif"
+baseRadius = "medium"
+buttonRadius = "medium"
+showWidgetBorder = true
+showSidebarBorder = true
+
+[theme.sidebar]
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#111827"
+borderColor = "#E5E7EB"
+primaryColor = "#4F46E5"
+linkColor = "#4338CA"
+showWidgetBorder = true

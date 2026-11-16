@@ -1,7 +1,8 @@
 from shared.domain.services import Services
-from shared.errors import unfinished
+from shared.models.common import RequestContext
 
 from .bus import InProcessBus
+from .messages import Message, Topic
 
 
 class CompletionRecovery:
@@ -9,9 +10,20 @@ class CompletionRecovery:
         self.services, self.bus = services, bus
 
     def recover(self) -> None:
-        """TODO EVENTS/PERSISTENCE: query durable pending committed notices; publish IDs
-        with stable event IDs; each result/report consumer deduplicates and acknowledges.
-        Mark pre-commit interrupted/unknown provider attempts explicitly; never replay paid
-        model requests automatically. This scaffold's queue/status store is not durable.
-        """
-        unfinished("EVENTS")
+        """Republish committed identifiers only; provider work is never replayed."""
+        gameplay = self.services.gameplay
+        sessions = getattr(gameplay, "sessions", None)
+        if sessions is None:
+            return
+        for notice in sessions.pending_notifications():
+            self.bus.publish(
+                Message(
+                    notice.event_id,
+                    notice.operation_id,
+                    notice.operation_id,
+                    None,
+                    Topic.TURN_COMMITTED,
+                    RequestContext("completion-recovery", None, notice.operation_id),
+                    notice=notice,
+                )
+            )

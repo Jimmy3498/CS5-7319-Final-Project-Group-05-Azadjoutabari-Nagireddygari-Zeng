@@ -253,4 +253,9 @@ class WorldService:
                 for character in published.content.world.characters
                 if character.playable
             ),
+            playable_character_ids=tuple(
+                character.id
+                for character in published.content.world.characters
+                if character.playable
+            ),
         )

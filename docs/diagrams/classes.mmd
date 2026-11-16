@@ -67,5 +67,5 @@ classDiagram
   ProfileService --> CredentialStore
   LocalCredentialStore ..|> CredentialStore
   WorkflowStateStore o-- EditorWork
-  WorkflowStateStore ..> TurnWork : planned
-  WorkflowStateStore ..> NarrationWork : planned
+  WorkflowStateStore ..> TurnWork : private staged state
+  WorkflowStateStore ..> NarrationWork : player-only projection

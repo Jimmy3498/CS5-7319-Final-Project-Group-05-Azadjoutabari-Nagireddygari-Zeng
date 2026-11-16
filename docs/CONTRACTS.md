@@ -145,6 +145,7 @@ Provider usage/cost records stay separate from story analytics.
 
 | Query | Result |
 |---|---|
+| current_account | Server-authenticated `AccountView` for the browser session |
 | catalog | `CatalogEntry` tuple |
 | my_campaigns | Owned draft summaries |
 | editor_draft | Owned `CampaignDraft` |
@@ -152,7 +153,9 @@ Provider usage/cost records stay separate from story analytics.
 | resume_session | `PlayerView` and accepted transcript |
 | campaign_report | `CampaignReport` |
 | provider_cards | Redacted `ProviderProfile` tuple |
+| active_provider_card | Redacted active `ProviderProfile` |
 | update_preview | Adoption status, version IDs and safe conflict categories |
+| campaign_readiness | Structured `Issue` tuple for the owned saved draft |
 
 Keep raw `SessionSnapshot`, `MergePreview` candidates and `ProviderCapture` objects out of player,
 catalog and card views.

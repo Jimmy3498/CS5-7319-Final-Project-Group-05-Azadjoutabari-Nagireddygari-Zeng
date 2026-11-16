@@ -22,7 +22,7 @@ for path in sorted(ROOT.rglob("*")):
         problems.append(f"Private/runtime artifact in public source view: {relative}")
     if path.suffix not in TEXT_SUFFIXES and path.name not in {".gitignore", ".env.example"}:
         continue
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     # Detect accidental local-machine references without embedding those strings in this scanner.
     if ("/" + "Users/") in text or ("/var/" + "folders/") in text:
         problems.append(f"Machine-specific path: {relative}")

@@ -1,22 +1,22 @@
 flowchart LR
-  %% Current commands/editor plus target gameplay; TODO nodes are not implemented.
+  %% Implemented command, editor, gameplay, reporting and recovery topology.
   UI[ScreenController] --> GW[EventGateway]
   GW -->|enqueue command| BUS[InProcessBus / Queue]
   BUS --> AUTH[Accounts / campaigns / profiles handlers]
-  BUS --> ADMIT[Gameplay admission TODO]
+  BUS --> ADMIT[Gameplay admission]
   ADMIT -->|context prepared| BUS
-  BUS --> PLAN[Director model TODO]
+  BUS --> PLAN[Director model]
   PLAN -->|plan proposed| BUS
-  BUS --> VALIDATE[Validation / disclosure / projection TODO]
+  BUS --> VALIDATE[Validation / disclosure / projection]
   VALIDATE -->|narration work ready| BUS
-  BUS --> NARRATE[Narrator model TODO]
+  BUS --> NARRATE[Narrator model]
   NARRATE -->|narration proposed| BUS
-  BUS --> COMMIT[Persistence handler TODO]
+  BUS --> COMMIT[Persistence handler]
   COMMIT -->|atomic commit| SQL[SQLiteStore + pending notices]
   COMMIT -->|turn committed IDs| BUS
-  BUS --> RESULT[Result subscriber TODO]
-  BUS --> REPORT[Independent report subscriber TODO]
-  SQL --> RECOVER[CompletionRecovery TODO]
+  BUS --> RESULT[Result subscriber]
+  BUS --> REPORT[Independent report subscriber]
+  SQL --> RECOVER[CompletionRecovery]
   RECOVER -->|notifications only| BUS
   AUTH & ADMIT & PLAN & VALIDATE & NARRATE & COMMIT & REPORT --> SHARED[Shared domain capabilities / adapters]
   BUS --> EDIT_PREP[Editor prepare and capture]
@@ -24,5 +24,5 @@ flowchart LR
   BUS --> EDIT_AI[Editor proposal model]
   EDIT_AI -->|EDITOR_CANDIDATE reference| BUS
   BUS --> EDIT_RETAIN[Editor proposal retention]
-  EDIT_RETAIN --> EDIT_STORE[SQLite proposal methods TODO]
+  EDIT_RETAIN --> EDIT_STORE[SQLite proposal repository]
   EDIT_PREP & EDIT_AI & EDIT_RETAIN --> SHARED

@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from ..codec import decode, load_json
 from ..commands import RetryTurn, StartSession, SubmitTurn
-from ..errors import ApplicationError, ErrorCode, unfinished
+from ..errors import ApplicationError, ErrorCode
 from ..models.common import Visibility
 from ..models.gameplay import (
     AcceptedTurn,
@@ -304,14 +304,24 @@ class GameplayService:
     def history(self, owner_id: str, session_id: str) -> tuple[AcceptedTurn, ...]:
         return self.sessions.accepted_history(owner_id, session_id)
 
+    def acknowledge(self, consumer: str, event_id: str) -> None:
+        self.sessions.acknowledge_notification(consumer, event_id)
+
+    def recover_completed_results(self) -> None:
+        """Mark durable committed results as query-resumable after a host restart."""
+        for notice in self.sessions.pending_notifications():
+            self.sessions.acknowledge_notification("result", notice.event_id)
+
     def retry(
-        self, owner_id: str, command: RetryTurn, new_operation_id: str
+        self,
+        owner_id: str,
+        command: RetryTurn,
+        new_operation_id: str,
+        request_id: str | None,
     ) -> SubmitTurn | TurnCommit:
-        """TODO GAMEPLAY: inspect prior durable receipt/attempt, preserve input, explicitly link
-        retry; committed old operation returns its result, never repeats billing. Unknown remote
-        outcome stays visible. Fence late old replies; no automatic paid replay after restart.
-        """
-        unfinished("GAMEPLAY")
+        if not request_id:
+            raise ApplicationError(ErrorCode.INVALID, "Missing request identity")
+        return self.sessions.retry_turn(owner_id, command, new_operation_id, request_id)
 
     def record_failure(
         self,

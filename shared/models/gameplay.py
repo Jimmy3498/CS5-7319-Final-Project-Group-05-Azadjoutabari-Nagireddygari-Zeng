@@ -122,3 +122,5 @@ class SessionSummary:
     base_version_id: str
     revision: int
     update_available: bool
+    campaign_id: str | None = None
+    latest_version_id: str | None = None

@@ -153,6 +153,7 @@ class CatalogEntry:
     summary: str
     version: int
     playable_character_names: tuple[str, ...]
+    playable_character_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

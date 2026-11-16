@@ -81,7 +81,9 @@ python -m streamlit run {spec.entrypoint}
 Open [the local demo](http://127.0.0.1:{spec.port}). Local data belongs in
 `.local/{spec.package}`. This application has no architecture selector.
 
-The UI is a preview; see [implementation status](docs/STATUS.md) for working backend flows.
+The shared UI supports accounts, campaigns, catalog/session startup, API cards, reviewed coediting
+and Layered gameplay. Event-Based turns, reports and campaign-update adoption remain feature-gated;
+see [implementation status](docs/STATUS.md).
 Develop and test in the full repository, then rebuild with `python -m {spec.package}.build`.
 `BUILD.json` records this package's files and checksums.
 

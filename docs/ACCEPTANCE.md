@@ -1,8 +1,8 @@
 # Acceptance tests
 
 Run A0–A13 through both architecture gateways with the same fixture, inputs, failures and scripted
-responses. Replace each skipped test body with assertions before enabling it. Real-provider cases
-run separately with approved credentials.
+responses. Focused test modules provide the automated evidence; real-provider cases run separately
+with approved credentials so secrets and paid requests never enter the suite.
 
 | ID | Owning capability | Required evidence |
 |---|---|---|
@@ -22,3 +22,7 @@ run separately with approved credentials.
 | A13 | GAMEPLAY | Create a real allowed template instance; persist across resume; duplicate retry adds none; reject invalid templates/destinations/NPC creation. |
 
 See [ARCHITECTURE](ARCHITECTURE.md) for the connector experiments and comparison measurements.
+
+Primary automated evidence: `test_foundation.py`, `test_creative_writing.py`,
+`test_effect_validation.py`, `test_turn_commit.py`, `test_layered_turn.py`,
+`test_event_gameplay_mvp.py`, `test_profile_service.py`, `test_http_provider.py`, and `test_ui.py`.

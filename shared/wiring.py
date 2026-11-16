@@ -26,9 +26,10 @@ def compose_services(data_root: Path) -> Services:
     knowledge = KnowledgePolicy()
     updates = UpdateService(repository, repository)
     reporting = ReportingService(repository, repository)
+    world = WorldService(repository)
     return Services(
         accounts=accounts,
-        world=WorldService(repository),
+        world=world,
         editor=EditorService(repository, repository),
         knowledge=knowledge,
         gameplay=GameplayService(repository, repository),
@@ -37,6 +38,6 @@ def compose_services(data_root: Path) -> Services:
         updates=updates,
         reporting=reporting,
         queries=QueryService(
-            accounts, repository, repository, repository, reporting, updates, knowledge
+            accounts, repository, repository, repository, reporting, updates, knowledge, world
         ),
     )

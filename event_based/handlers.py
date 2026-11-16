@@ -1,20 +1,22 @@
 """Component handlers; no shared whole-turn coordinator or inline subscriber calls.
 
 Single-capability commands and the three-stage editor flow are implemented.
-Gameplay and recovery handlers remain TODO. See docs/ARCHITECTURE.md.
+Gameplay uses staged messages and opaque private work references. See docs/ARCHITECTURE.md.
 """
 
+from dataclasses import replace
 from uuid import uuid4
 
-from shared.commands import RequestEditorProposal
+from shared.commands import RequestEditorProposal, SubmitTurn
 from shared.domain.services import Services
-from shared.errors import ApplicationError, ErrorCode, unfinished
+from shared.errors import ApplicationError, ErrorCode
 from shared.gateway import OperationStatus
+from shared.models.views import TurnResultView
 from shared.operation_status import OperationStatusStore
 
 from .bus import InProcessBus
 from .messages import Message, Topic
-from .state import EditorWork, WorkflowStateStore
+from .state import EditorWork, FailureWork, NarrationWork, TurnWork, WorkflowStateStore
 
 
 class ComponentHandlers:
@@ -39,7 +41,7 @@ class ComponentHandlers:
         )
 
     def complete(self, message: Message, result: object = None) -> None:
-        # TODO PERSISTENCE: durable authorized result receipt, not just this transient status.
+        # The durable accepted result lives in SQLite; this is the client-session delivery receipt.
         self.statuses.update(
             message.operation_id,
             OperationStatus.COMPLETED,
@@ -147,68 +149,235 @@ class ComponentHandlers:
         self.state.release(message.operation_id)
 
     def turn_requested(self, message: Message) -> None:
-        """TODO EVENTS: authenticate -> durable request admission/dedup -> GameplayService.prepare
-        -> capture provider config -> retain private TurnWork -> queue TURN_CONTEXT. Serialize
-        one in-flight operation per session; no SQL transaction held while awaiting the bus.
-        """
-        unfinished("EVENTS")
+        if not isinstance(message.command, SubmitTurn):
+            raise ApplicationError(ErrorCode.INVALID, "Invalid turn request")
+        user = self.s.accounts.require_user(message.context)
+        request_id = message.context.request_id
+        if not request_id:
+            raise ApplicationError(ErrorCode.INVALID, "Missing request identity")
+        admission = self.s.gameplay.prepare(
+            user.id, message.command, message.operation_id, request_id
+        )
+        if admission.previous_commit is not None:
+            self.complete(message, TurnResultView(admission.previous_commit.turn, None))
+            return
+        if admission.baseline is None:
+            raise ApplicationError(ErrorCode.INTERNAL, "Invalid turn admission")
+        try:
+            capture = self.s.profiles.capture(user.id)
+            history = self.s.gameplay.history(user.id, admission.baseline.id)
+        except Exception as error:
+            code = error.code if isinstance(error, ApplicationError) else ErrorCode.INTERNAL
+            self.s.gameplay.record_failure(
+                user.id,
+                message.operation_id,
+                message.command.session_id,
+                code.value,
+                code == ErrorCode.PROVIDER_UNCERTAIN,
+            )
+            raise
+        context = replace(message.context, user_id=user.id)
+        reference = self.state.retain_turn(
+            message.operation_id,
+            TurnWork(
+                user.id,
+                context,
+                message.command,
+                admission.baseline,
+                capture,
+                history,
+            ),
+        )
+        self.statuses.update(message.operation_id, OperationStatus.RUNNING, "Turn context prepared")
+        self.next_event(message, Topic.TURN_CONTEXT, reference)
 
     def director_model(self, message: Message) -> None:
-        """TODO EVENTS: retrieve private TurnWork -> KnowledgePolicy.director_context ->
-        AIService.plan_turn -> retain typed proposal -> queue TURN_PLAN. No raw planner prose
-        or private facts in event payload; failures queue TURN_FAILED with sanitized references.
-        """
-        unfinished("EVENTS")
+        work = self.state.private_turn(message.work_reference, message.context, "prepared")
+        context = self.s.knowledge.director_context(
+            work.baseline, work.command.player_input, work.history
+        )
+        proposal = self.s.ai.plan_turn(context, work.capture)
+        self.state.update_turn(
+            message.work_reference,
+            message.context,
+            "prepared",
+            proposal=proposal,
+            stage="planned",
+        )
+        self.next_event(message, Topic.TURN_PLAN, message.work_reference or "")
 
     def validate_turn(self, message: Message) -> None:
-        """TODO EVENTS: validate_and_project -> authorize_disclosures -> accepted_history ->
-        player_view. Store separate NarrationWork (PlayerView + captured config), then queue
-        TURN_VALIDATED. Invalid proposals leave accepted state untouched and queue TURN_FAILED.
-        """
-        unfinished("EVENTS")
+        work = self.state.private_turn(message.work_reference, message.context, "planned")
+        if work.proposal is None:
+            raise ApplicationError(ErrorCode.INTERNAL, "Turn plan is missing")
+        candidate = self.s.gameplay.validate_and_project(work.baseline, work.proposal)
+        candidate = self.s.knowledge.authorize_disclosures(work.baseline, candidate, work.proposal)
+        view = self.s.knowledge.player_view(candidate, work.history, work.command.player_input)
+        self.state.retain_narration(
+            message.work_reference,
+            message.context,
+            NarrationWork(
+                work.owner_id,
+                work.context,
+                work.command,
+                candidate,
+                view,
+                work.capture,
+            ),
+        )
+        self.state.update_turn(
+            message.work_reference,
+            message.context,
+            "planned",
+            candidate=candidate,
+            view=view,
+            stage="validated",
+        )
+        self.next_event(message, Topic.TURN_VALIDATED, message.work_reference or "")
 
     def narrator_model(self, message: Message) -> None:
-        """TODO EVENTS: fetch NarrationWork only -> AIService.narrate -> retain bounded text ->
-        queue NARRATION. Never fetch full TurnWork/DirectorContext or pass privileged free text.
-        """
-        unfinished("EVENTS")
+        work = self.state.narration(message.work_reference, message.context, "prepared")
+        narration = self.s.ai.narrate(work.view, work.capture)
+        self.state.update_narration(
+            message.work_reference,
+            message.context,
+            "prepared",
+            narration=narration,
+            stage="narrated",
+        )
+        self.state.update_turn(
+            message.work_reference,
+            message.context,
+            "validated",
+            narration=narration,
+            stage="narrated",
+        )
+        self.next_event(message, Topic.NARRATION, message.work_reference or "")
 
     def commit_turn(self, message: Message) -> None:
-        """TODO EVENTS: load authorized candidate/text -> GameplayService.commit with revision
-        check. Atomic state + transcript + receipt + durable notice first. Then publish
-        TURN_COMMITTED containing only CommittedTurnNotice IDs. Commit failure -> TURN_FAILED;
-        restart after commit republishes notification, never replays provider call.
-        """
-        unfinished("EVENTS")
+        turn = self.state.private_turn(message.work_reference, message.context, "narrated")
+        narration = self.state.narration(message.work_reference, message.context, "narrated")
+        if turn.candidate is None or narration.narration is None:
+            raise ApplicationError(ErrorCode.INTERNAL, "Validated turn is incomplete")
+        commit = self.s.gameplay.commit(
+            turn.owner_id,
+            message.operation_id,
+            turn.command,
+            turn.candidate,
+            narration.narration,
+        )
+        self.state.update_turn(
+            message.work_reference,
+            message.context,
+            "narrated",
+            commit=commit,
+            stage="committed",
+        )
+        notice = commit.notice
+        self.bus.publish(
+            Message(
+                notice.event_id,
+                notice.operation_id,
+                message.correlation_id,
+                message.id,
+                Topic.TURN_COMMITTED,
+                message.context,
+                work_reference=message.work_reference,
+                notice=notice,
+            )
+        )
 
     def result_consumer(self, message: Message) -> None:
-        """TODO EVENTS: deduplicate completion, retrieve authorized accepted public result,
-        complete caller receipt, acknowledge this consumer, release private work. Do not wait
-        for reporting. Result-delivery failure after commit must not label gameplay failed.
-        """
-        unfinished("EVENTS")
+        if message.notice is None:
+            raise ApplicationError(ErrorCode.INTERNAL, "Committed result is unavailable")
+        work = self.state.turn_for_operation(message.operation_id)
+        if work is not None:
+            work = self.state.private_turn(message.work_reference, message.context, "committed")
+            if work.commit is None:
+                raise ApplicationError(ErrorCode.INTERNAL, "Committed result is unavailable")
+            self.complete(message, TurnResultView(work.commit.turn, None))
+        self.s.gameplay.acknowledge("result", message.notice.event_id)
+        self.state.release(message.operation_id)
 
     def report_consumer(self, message: Message) -> None:
-        """TODO REPORTS/EVENTS: independent subscriber -> consume_committed_turn(notice),
-        acknowledge only after idempotent aggregate/marker update. Leave notice pending on error.
-        No player transcript/private-world payload in public reporting or subscriber trace.
-        """
-        unfinished("REPORTS")
+        if message.notice is None:
+            raise ApplicationError(ErrorCode.INTERNAL, "Committed notice is missing")
+        self.s.reporting.consume_committed_turn(message.notice)
 
     def failure_consumer(self, message: Message) -> None:
-        """TODO EVENTS: durable rejected/failed attempt, uncertain-provider-outcome flag and
-        linked retry reference; preserve accepted state, expose safe code, clean private work.
-        Reporting reads these attempt records, not just TURN_COMMITTED. Never count TODO stubs
-        as real failed gameplay measurements; failure-handler failure must not loop events.
-        """
-        unfinished("EVENTS")
+        work = self.state.failure(message.work_reference, message.context)
+        if work.owner_id is not None and work.session_id is not None:
+            self.s.gameplay.record_failure(
+                work.owner_id,
+                message.operation_id,
+                work.session_id,
+                work.public_code,
+                work.public_code == ErrorCode.PROVIDER_UNCERTAIN.value,
+            )
+        try:
+            code = ErrorCode(work.public_code)
+        except ValueError:
+            code = ErrorCode.INTERNAL
+        self.statuses.fail(message.operation_id, ApplicationError(code, work.public_message))
+        self.state.release(message.operation_id)
 
     def retry(self, message: Message) -> None:
-        """TODO EVENTS: authenticate -> GameplayService.retry -> new linked durable attempt;
-        if previous committed, return receipt; otherwise queue TURN_REQUEST explicitly.
-        Stale late completion is fenced. Never blindly resubmit unknown paid work on restart.
-        """
-        unfinished("EVENTS")
+        user = self.s.accounts.require_user(message.context)
+        if message.command is None or message.context.request_id is None:
+            raise ApplicationError(ErrorCode.INVALID, "Invalid retry request")
+        retry = self.s.gameplay.retry(
+            user.id,
+            message.command,
+            message.operation_id,
+            message.context.request_id,
+        )
+        if not isinstance(retry, SubmitTurn):
+            self.complete(message, TurnResultView(retry.turn, None))
+            return
+        self.bus.publish(
+            Message(
+                str(uuid4()),
+                message.operation_id,
+                message.correlation_id,
+                message.id,
+                Topic.TURN_REQUEST,
+                message.context,
+                command=retry,
+            )
+        )
+
+    def fail_turn(self, message: Message, error: Exception) -> None:
+        """Convert a private stage failure into a sanitized terminal event."""
+        code = error.code if isinstance(error, ApplicationError) else ErrorCode.INTERNAL
+        public_message = (
+            error.public_message
+            if isinstance(error, ApplicationError)
+            else "Internal failure; inspect sanitized diagnostics"
+        )
+        turn = self.state.turn_for_operation(message.operation_id)
+        owner_id = turn.owner_id if turn is not None else None
+        session_id = turn.command.session_id if turn is not None else None
+        if turn is None and isinstance(message.command, SubmitTurn):
+            session_id = message.command.session_id
+            try:
+                owner_id = self.s.accounts.require_user(message.context).id
+            except ApplicationError:
+                owner_id = None
+        reference = self.state.retain_failure(
+            message.operation_id,
+            FailureWork(message.context, owner_id, session_id, code.value, public_message),
+        )
+        self.bus.publish(
+            Message(
+                str(uuid4()),
+                message.operation_id,
+                message.correlation_id,
+                message.id,
+                Topic.TURN_FAILED,
+                message.context,
+                work_reference=reference,
+            )
+        )
 
     def register(self) -> None:
         registrations = {

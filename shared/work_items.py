@@ -1,4 +1,4 @@
-"""Stable contribution IDs. These describe missing work, not completed capabilities."""
+"""Stable contribution/capability IDs and their acceptance coverage."""
 
 from dataclasses import dataclass
 

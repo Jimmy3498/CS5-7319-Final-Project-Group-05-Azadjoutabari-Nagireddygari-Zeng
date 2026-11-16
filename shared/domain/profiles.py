@@ -30,7 +30,11 @@ class ProfileService:
         )
         if not name or not model:
             raise ApplicationError(ErrorCode.INVALID, "Card name and model are required")
-        if command.protocol != "chat-completions-compatible":
+        if command.protocol not in {
+            "chat-completions-compatible",
+            "anthropic-messages",
+            "google-generate-content",
+        }:
             raise ApplicationError(ErrorCode.INVALID, "Unsupported provider protocol")
 
         try:

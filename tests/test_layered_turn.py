@@ -103,7 +103,7 @@ class LayeredTurnTests(unittest.TestCase):
 
     def test_turn_commits_and_replays_after_reopening(self):
         result = self.submit(self.command, "turn")
-        self.assertTrue(result.reporting_pending)
+        self.assertFalse(result.reporting_pending)
 
         saved = self.store.load_session(self.account.id, self.before.id)
         self.assertEqual(saved.revision, 1)
@@ -126,6 +126,13 @@ class LayeredTurnTests(unittest.TestCase):
         with closing(self.store._connect()) as db:
             count = db.execute("SELECT COUNT(*) FROM pending_notifications").fetchone()[0]
             self.assertEqual(count, 1)
+            db.execute("DELETE FROM consumer_receipts WHERE consumer_id = 'reporting'")
+            db.commit()
+        self.app.close()
+        self.app = build(self.root)
+        self.addCleanup(self.app.close)
+        self.assertEqual(self.store.pending_notifications(), ())
+        self.assertEqual(self.provider.calls, 2)
 
     def test_invalid_effect_releases_reservation(self):
         invalid = ProviderResponse(
@@ -177,3 +184,43 @@ class LayeredTurnTests(unittest.TestCase):
             self.before,
         )
         self.assertEqual(self.store.accepted_history(self.account.id, self.before.id), ())
+
+    def test_explicit_retry_links_attempt_and_reuses_private_input(self):
+        invalid = ProviderResponse(
+            json.dumps(
+                {
+                    "expected_revision": 0,
+                    "effects": [
+                        {
+                            "kind": "move_character",
+                            "actor_id": "rowan",
+                            "destination_id": "missing-location",
+                        }
+                    ],
+                    "public_fact_ids": [],
+                }
+            )
+        )
+        self.app.application.services.ai.transport = ScriptedTestProvider((invalid,))
+        failed = self.app.submit(self.context, self.command, "retry-source")
+        self.assertEqual(failed.status, OperationStatus.REJECTED)
+
+        self.app.application.services.ai.transport = self.provider
+        retried = self.app.submit(
+            self.context,
+            c.RetryTurn(failed.operation_id, self.before.id, self.before.revision),
+            "explicit-retry",
+        )
+        self.assertEqual(retried.status, OperationStatus.COMPLETED, retried.message)
+        self.assertEqual(retried.result.turn.player_input, self.command.player_input)
+        with closing(self.store._connect()) as db:
+            link = db.execute(
+                "SELECT prior_attempt_id FROM turn_attempts WHERE operation_id = ?",
+                (retried.operation_id,),
+            ).fetchone()[0]
+        self.assertIsNotNone(link)
+        report = self.store.campaign_report(
+            self.account.id, self.before.campaign_id, self.before.base_version_id
+        )
+        self.assertEqual(report.accepted_turns, 1)
+        self.assertEqual(report.rejected_turns, 1)

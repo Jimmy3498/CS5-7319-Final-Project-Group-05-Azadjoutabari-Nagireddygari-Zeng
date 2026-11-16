@@ -10,4 +10,7 @@ from .gateway import LayeredGateway
 def build(data_root: Path | None = None) -> LayeredGateway:
     root = data_root or Path(__file__).resolve().parents[1] / ".local" / "layered"
     SQLiteStore(root / "application.sqlite3").initialize()
-    return LayeredGateway(LayeredApplication(compose_services(root)))
+    services = compose_services(root)
+    services.gameplay.recover_completed_results()
+    services.reporting.catch_up()
+    return LayeredGateway(LayeredApplication(services))

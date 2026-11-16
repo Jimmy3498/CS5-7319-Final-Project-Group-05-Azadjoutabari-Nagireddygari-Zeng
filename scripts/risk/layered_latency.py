@@ -216,6 +216,9 @@ class FakeGameplay:
         )
         return TurnCommit(turn, notice)
 
+    def acknowledge(self, consumer: str, event_id: str) -> None:
+        del consumer, event_id
+
 
 class FakeKnowledge:
     def __init__(self, trace: TraceRecorder) -> None:

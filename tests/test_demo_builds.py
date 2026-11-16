@@ -153,11 +153,11 @@ class DemoBuildTests(unittest.TestCase):
                 app.radio[0].set_value(page).run(timeout=20)
                 assert not app.exception, str(app.exception)
                 assert all(widget.label != "Architecture" for widget in app.selectbox)
-                assert any(c.value == "Running: " + label for c in app.caption)
+                assert any(c.value == label + " architecture" for c in app.caption)
             assert not any(name.split(".")[0] == opposite for name in sys.modules)
             assert (root / ".local" / package / "application.sqlite3").is_file()
             assert not (root / ".local" / opposite).exists()
-            print(label + ": isolated launch, seven pages and dispatch passed")
+            print(label + ": isolated launch, workspaces and dispatch passed")
         """)
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "build"
@@ -184,7 +184,7 @@ class DemoBuildTests(unittest.TestCase):
                     timeout=60,
                 )
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-                self.assertIn("isolated launch, seven pages and dispatch passed", result.stdout)
+                self.assertIn("isolated launch, workspaces and dispatch passed", result.stdout)
 
     def test_existing_target_output_is_preserved(self):
         with tempfile.TemporaryDirectory() as temporary:

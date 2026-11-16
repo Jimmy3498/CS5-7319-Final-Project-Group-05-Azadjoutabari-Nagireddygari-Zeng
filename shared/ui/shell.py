@@ -3,16 +3,15 @@ import streamlit as st
 from shared.gateway import ApplicationGateway
 from shared.models.common import RequestContext
 
-from .accounts import account
 from .activity import reports
 from .catalog import catalog
+from .common import UIContext
 from .editor import editor
 from .play import play
 from .profiles import profiles
 
 PAGES = (
     "Overview",
-    "Account",
     "Browse Campaigns",
     "My Campaigns / Editor",
     "My Sessions / Play",
@@ -21,7 +20,6 @@ PAGES = (
 )
 
 RENDERERS = {
-    "Account": account,
     "Browse Campaigns": catalog,
     "My Campaigns / Editor": editor,
     "My Sessions / Play": play,
@@ -31,16 +29,58 @@ RENDERERS = {
 
 
 def render(page: str, gateway: ApplicationGateway, context: RequestContext) -> None:
+    ui = UIContext(gateway, context)
     if page == "Overview":
-        st.header("Architecture comparison")
-        st.write(
-            "Shared capabilities; direct Layered coordination and queued Event-Based coordination."
+        st.header("Welcome to Story Studio")
+        st.caption(
+            "Create an interactive world, publish it for players, or continue an existing story."
         )
-        st.write(
-            "Complete one capability behind its contract, then integrate and test it through both architectures."
-        )
+        create_col, browse_col, play_col = st.columns(3)
+        with create_col.container(border=True, height="stretch"):
+            st.subheader("Create", icon=":material/edit_note:")
+            st.write("Develop campaigns and review AI-assisted suggestions.")
+            st.space("stretch")
+            st.button(
+                "Open editor",
+                key="overview.editor",
+                icon=":material/arrow_forward:",
+                width="stretch",
+                on_click=_open_page,
+                args=("My Campaigns / Editor",),
+            )
+        with browse_col.container(border=True, height="stretch"):
+            st.subheader("Explore", icon=":material/explore:")
+            st.write("Browse published campaigns and choose a playable character.")
+            st.space("stretch")
+            st.button(
+                "Browse campaigns",
+                key="overview.catalog",
+                icon=":material/arrow_forward:",
+                width="stretch",
+                on_click=_open_page,
+                args=("Browse Campaigns",),
+            )
+        with play_col.container(border=True, height="stretch"):
+            st.subheader("Play", icon=":material/sports_esports:")
+            st.write("Resume your sessions and continue the narrative.")
+            st.space("stretch")
+            st.button(
+                "My sessions",
+                key="overview.play",
+                icon=":material/arrow_forward:",
+                width="stretch",
+                on_click=_open_page,
+                args=("My Sessions / Play",),
+            )
+
+        st.subheader("Application status", icon=":material/info:")
+        st.metric("Active architecture", gateway.architecture, border=True)
     else:
-        RENDERERS[page]()
+        RENDERERS[page](ui)
+
+
+def _open_page(page: str) -> None:
+    st.session_state["page"] = page
 
 
 class ScreenController:

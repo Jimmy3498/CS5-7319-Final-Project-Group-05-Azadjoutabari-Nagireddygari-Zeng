@@ -1,5 +1,5 @@
--- Structural schema only. Application repositories/transactions are unimplemented.
--- No credentials, user records, runtime state or real provider data are seeded here.
+-- Application schema used by SQLite repositories and atomic workflow transactions.
+-- Credentials and seed user/runtime/provider records are deliberately excluded.
 PRAGMA foreign_keys = ON;
 CREATE TABLE schema_versions (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
 CREATE TABLE accounts (

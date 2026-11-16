@@ -1,7 +1,7 @@
 """Layered application coordinator: explicit calls to domain-facing capabilities.
 
 No HTTP, SQLite, credential-store implementation or event bus is imported here.
-Unfinished capabilities retain explicit FeatureNotImplemented results.
+All supported commands coordinate through domain-facing services.
 """
 
 from shared import commands as c
@@ -79,7 +79,7 @@ class LayeredApplication:
             history = s.gameplay.history(user.id, session.id)
             return s.knowledge.player_view(session, history, "")
         if isinstance(command, c.RetryTurn):
-            retry = s.gameplay.retry(user.id, command, operation_id)
+            retry = s.gameplay.retry(user.id, command, operation_id, context.request_id)
             if isinstance(retry, TurnCommit):
                 return TurnResultView(retry.turn, None)
             return self._turn(user.id, retry, operation_id, context.request_id)
@@ -122,6 +122,8 @@ class LayeredApplication:
                 code == ErrorCode.PROVIDER_UNCERTAIN,
             )
             raise
+
+        s.gameplay.acknowledge("result", commit.notice.event_id)
 
         try:
             s.reporting.consume_committed_turn(commit.notice)

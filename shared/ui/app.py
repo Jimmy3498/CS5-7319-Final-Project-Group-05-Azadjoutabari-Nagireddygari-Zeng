@@ -6,11 +6,11 @@ from uuid import uuid4
 
 import streamlit as st
 
-from shared.commands import RegisterAccount
 from shared.gateway import ApplicationGateway
-from shared.models.common import RequestContext, SecretInput
+from shared.models.common import RequestContext
+from shared.ui.accounts import account_control
+from shared.ui.common import UIContext, current_account
 from shared.ui.shell import PAGES, ScreenController
-from shared.work_items import WORK_ITEMS
 
 
 @st.cache_resource
@@ -21,34 +21,36 @@ def _host(architecture: str, _build: Callable[[], ApplicationGateway]) -> Applic
 
 
 def run(architecture: str, build: Callable[[], ApplicationGateway]) -> None:
-    st.set_page_config(page_title=f"CS7319 | {architecture}", page_icon="📚", layout="wide")
-    st.title(f"AI-powered storytelling · {architecture}")
-    st.warning("Scaffold preview — business controls are disabled.")
-    st.sidebar.caption(f"Running: {architecture}")
-    page = st.sidebar.radio("Workspace", PAGES, key="page")
+    st.set_page_config(
+        page_title=f"Story Studio | {architecture}",
+        page_icon=":material/auto_stories:",
+        layout="wide",
+    )
     st.session_state.setdefault("_client_session_id", str(uuid4()))
+    st.session_state.setdefault("_correlation_id", str(uuid4()))
     host = _host(architecture, build)
-    context = RequestContext(st.session_state["_client_session_id"], None, "scaffold-ui")
+    context = RequestContext(
+        st.session_state["_client_session_id"],
+        None,
+        st.session_state["_correlation_id"],
+    )
+    ui = UIContext(host, context)
+    account = current_account(ui)
+
+    st.sidebar.title("Story Studio")
+    st.sidebar.caption(f"{architecture} architecture")
+    page = st.sidebar.radio(
+        "Workspace",
+        PAGES,
+        key="page",
+        label_visibility="collapsed",
+    )
+
+    title_col, account_col = st.columns([5, 2], vertical_alignment="center")
+    with title_col:
+        st.title(":material/auto_stories: AI-powered storytelling")
+    with account_col:
+        with st.container(horizontal_alignment="right"):
+            account_control(ui, account)
+
     ScreenController(host, context).render(page)
-    with st.sidebar.expander("Structural wiring probe"):
-        st.caption(
-            "Submit an empty registration. Expected result: REJECTED; no account is created."
-        )
-        key = f"_probe_{architecture}"
-        if st.button("Probe command route"):
-            receipt = host.submit(
-                context,
-                RegisterAccount("", SecretInput("")),
-                str(uuid4()),
-            )
-            st.session_state[key] = receipt.operation_id
-        if key in st.session_state:
-            if st.button("Refresh probe status"):
-                pass  # Poll only; never redispatch the command on rerun.
-            receipt = host.poll(context, st.session_state[key])
-            st.write(receipt.status.value)
-            st.caption(receipt.message)
-    with st.expander("Contribution map"):
-        for item_id, item in WORK_ITEMS.items():
-            st.markdown(f"**{item_id} — {item.title}**")
-            st.caption(" | ".join(item.files))

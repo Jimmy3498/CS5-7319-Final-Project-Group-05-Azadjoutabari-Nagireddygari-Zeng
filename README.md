@@ -4,8 +4,8 @@ One repository with two Python/Streamlit applications: **Layered** and **Event-B
 Each has its own entrypoint, coordinator and build target. Models, business capabilities, adapters
 and UI components are maintained once in `shared/`.
 
-Shared persistence and services, Layered gameplay and the reviewed-editor workflow are implemented
-to different stages. [STATUS](docs/STATUS.md) lists working paths and remaining work;
+Shared persistence and services, both gameplay coordinators, and the reviewed-editor workflow are
+implemented for the MVP. [STATUS](docs/STATUS.md) lists working paths and verification;
 [CHANGES](docs/CHANGES.md) summarizes this integration checkpoint.
 
 ## Run locally
@@ -29,13 +29,13 @@ python -m streamlit run layered/streamlit_app.py --server.port 8501
 python -m streamlit run event_based/streamlit_app.py --server.port 8502
 ```
 
-For real API-card storage, also install `python -m pip install "keyring>=25,<30"`
-and use a supported OS credential vault. Tests use fake credentials and do not require keyring.
+API-card storage uses the declared `keyring` dependency and a supported OS credential vault.
+Tests use fake credentials and never require a real key.
 
 Each application is fixed to its architecture; there is no combined launcher or runtime selector.
-The UI is a preview with business controls disabled. The sidebar probe rejects an empty
-registration without creating an account or calling a provider. Backend workflows are exercised
-by the tests while UI integration is pending.
+The shared UI supports accounts, authoring, catalog/session startup, API cards, reviewed coediting,
+gameplay, reports, retry/recovery and campaign-update adoption in both applications. See the
+[UI reference and user journey](docs/UI.md).
 
 ## Build each demo
 
@@ -93,6 +93,10 @@ One account can author and play. The target MVP includes world/entity editing, r
 a campaign catalog, preset player characters, independent sessions, validated turns, save/resume,
 template-based item creation, compatible campaign updates, milestone reports and private API cards. [STATUS](docs/STATUS.md) tracks completion.
 Player views enforce character knowledge and disclosure rules.
+
+AI cards support OpenAI-compatible chat-completions endpoints (including hosted Meta-compatible
+models), Anthropic Messages, and Google Gemini `generateContent`. Install the declared dependencies,
+then add only your provider endpoint/model/API key in **API Cards**; keys use the OS credential vault.
 
 Marketplace/payments, multiplayer, custom player-character creation, rulebook interpretation and
 intelligent campaign merging are outside this MVP.

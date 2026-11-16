@@ -30,7 +30,7 @@ server configuration and local data paths. See [build instructions](../README.md
 Results return along the same path. A turn calls prepare, capture, privileged
 planning with accepted history, validation, disclosure authorization, player projection, narration, atomic commit, then reporting.
 A report failure after commit returns the accepted turn with reporting-pending status.
-Reporting catch-up is planned as an explicit call and remains TODO.
+Reporting catch-up replays durable committed notices without repeating model requests.
 
 ## Event-Based
 
@@ -38,7 +38,7 @@ Reporting catch-up is planned as an explicit call and remains TODO.
 Publishing returns without executing a handler. A separate worker dispatches subscriptions. Mutating
 commands have distinct topics. Read-only queries may use authorized projections directly.
 
-Target normal-turn topology (multistage gameplay handlers are not yet implemented):
+Implemented normal-turn topology:
 
 1. `turn.requested`: authenticate, admit/deduplicate, capture state/configuration and private work reference.
 2. `turn.context_prepared`: Director model handler creates typed plan.
@@ -48,14 +48,15 @@ Target normal-turn topology (multistage gameplay handlers are not yet implemente
 6. `turn.committed`: **independent result and reporting subscribers**; each acknowledges separately.
 7. `turn.rejected_or_failed`: attempt history and safe status, no accepted-state mutation.
 
-The implemented editor sequence is EDITOR_REQUEST → EDITOR_CONTEXT → EDITOR_CANDIDATE:
-prepare/capture → model proposal → retain for review. Its production proposal repository is still TODO.
+The editor sequence is EDITOR_REQUEST → EDITOR_CONTEXT → EDITOR_CANDIDATE:
+prepare/capture → model proposal → persist for explicit review.
 Account, campaign, profile and session commands also use queued handlers. Multistage handlers
 publish continuation messages; terminal handlers complete or acknowledge the operation. The bus handles routing.
 
 The current queue is unbounded and in-memory. One worker invokes subscribers sequentially, with separate
 error handling for each subscriber. Shutdown drops queued commands and fails their transient receipts;
-running network calls need cancellation/fencing. Recovery is planned to replay committed notifications, never paid requests; it is not yet implemented.
+running network calls use durable attempt state and explicit retry. Startup recovery republishes
+committed notification identifiers, never paid provider requests.
 
 ## Component → class/module → connector map
 
@@ -66,7 +67,7 @@ running network calls need cancellation/fencing. Recovery is planned to replay c
 | Event ingress | EventGateway | InProcessBus.publish; status/query interface |
 | Event connector | InProcessBus | Queue + topic/subscription callback |
 | Event components | ComponentHandlers named methods | Message topics and opaque work references |
-| Private stage state | WorkflowStateStore, EditorWork, TurnWork, NarrationWork | Editor retention implemented; turn/narration retention pending |
+| Private stage state | WorkflowStateStore, EditorWork, TurnWork, NarrationWork | Owner-scoped opaque references; narrator receives only player projection |
 | Event recovery | CompletionRecovery | SessionRepository pending notices; bus publication |
 | Accounts | AccountService, ScryptPasswordHasher | AccountRepository / PasswordHasher |
 | World/publication | WorldService | CampaignRepository |
@@ -96,8 +97,8 @@ prohibits, restricts and cautions relationships between their properties.
 |---|---|---|
 | Gateway/service calls | Typed, local, synchronous procedure calls | Entry points, parameters, accessibility, cardinality, error propagation |
 | Event publication/subscription | Queued dispatch implemented; one FIFO worker, sequential subscribers, no durable queue | Delivery, ordering/causality, notification, capacity, scheduling, failure isolation |
-| Repository/SQLite | SQLite adapter with short atomic transactions; editor proposal/reporting methods pending | Data access, transaction scope, locking, availability, concurrent updates |
-| Provider adapter/HTTP | Implemented nonstreaming compatible HTTP transport | Adaptation, deadlines, response bounds, credential scope, uncertain remote outcomes |
+| Repository/SQLite | SQLite adapter with short atomic transactions, notices, reports and proposals | Data access, transaction scope, locking, availability, concurrent updates |
+| Provider adapter/HTTP | OpenAI-compatible, Anthropic and Gemini nonstreaming adapters | Adaptation, deadlines, response bounds, credential scope, uncertain remote outcomes |
 
 ## Risk analysis and comparison evidence
 
