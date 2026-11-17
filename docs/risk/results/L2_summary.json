@@ -2,13 +2,13 @@
   "experiment_id": "L2",
   "label": "Layered coordinator/reporting simulation",
   "scope": "real Layered coordinator with deterministic gameplay/reporting doubles; not a complete integration test or durable SQLite persistence proof",
-  "generated_at_utc": "2026-11-17T01:25:13.409788+00:00",
+  "generated_at_utc": "2026-11-17T02:00:19.189043+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
+      "commit_sha": "d93a0969b5a754e10257c49a3ca9cc1ebc32b82d",
       "working_tree_dirty": false,
       "metadata_error": null
     },
@@ -57,21 +57,21 @@
       "sequence_valid_trials": 10,
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 0.052,
-        "median": 0.0808,
-        "maximum": 0.1672
+        "minimum": 0.0291,
+        "median": 0.03985,
+        "maximum": 0.1375
       },
       "reporting_duration_ms": {
         "count": 10,
-        "minimum": 0.0008,
-        "median": 0.0013,
-        "maximum": 0.0015
+        "minimum": 0.0005,
+        "median": 0.00075,
+        "maximum": 0.0014
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 0.0674,
-        "median": 0.09595,
-        "maximum": 0.1878
+        "minimum": 0.036,
+        "median": 0.0528,
+        "maximum": 0.1544
       },
       "median_response_increase_vs_normal_ms": 0.0
     },
@@ -90,23 +90,23 @@
       "sequence_valid_trials": 10,
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 0.165,
-        "median": 0.3239,
-        "maximum": 1.5828
+        "minimum": 0.0281,
+        "median": 0.1643,
+        "maximum": 0.4268
       },
       "reporting_duration_ms": {
         "count": 10,
-        "minimum": 500.1954,
-        "median": 500.39365,
-        "maximum": 552.9434
+        "minimum": 500.0701,
+        "median": 500.3764,
+        "maximum": 500.7607
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 500.4708,
-        "median": 500.78165,
-        "maximum": 553.3543
+        "minimum": 500.2965,
+        "median": 500.65315,
+        "maximum": 501.115
       },
-      "median_response_increase_vs_normal_ms": 500.6857
+      "median_response_increase_vs_normal_ms": 500.60035
     },
     {
       "scenario": "C_reporting_delay_2s",
@@ -123,23 +123,23 @@
       "sequence_valid_trials": 10,
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 0.1371,
-        "median": 0.337,
-        "maximum": 1.34
+        "minimum": 0.1116,
+        "median": 0.135,
+        "maximum": 0.5023
       },
       "reporting_duration_ms": {
         "count": 10,
-        "minimum": 2000.305,
-        "median": 2000.5221,
-        "maximum": 2000.6996
+        "minimum": 2000.0768,
+        "median": 2000.3811,
+        "maximum": 2000.6935
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 2000.5892,
-        "median": 2000.94065,
-        "maximum": 2002.1254
+        "minimum": 2000.2882,
+        "median": 2000.6587,
+        "maximum": 2001.177
       },
-      "median_response_increase_vs_normal_ms": 2000.8447
+      "median_response_increase_vs_normal_ms": 2000.6059
     },
     {
       "scenario": "D_reporting_failure_after_commit",
@@ -156,24 +156,24 @@
       "sequence_valid_trials": 10,
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 0.2264,
-        "median": 0.3449,
-        "maximum": 0.915
+        "minimum": 0.0534,
+        "median": 0.06945,
+        "maximum": 0.1284
       },
       "reporting_duration_ms": {
         "count": 10,
-        "minimum": 0.0026,
-        "median": 0.00415,
-        "maximum": 0.0702
+        "minimum": 0.0009,
+        "median": 0.001,
+        "maximum": 0.0159
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 0.2742,
-        "median": 0.45245,
-        "maximum": 0.9854
+        "minimum": 0.0653,
+        "median": 0.08975,
+        "maximum": 0.1554
       },
-      "median_response_increase_vs_normal_ms": 0.3565
+      "median_response_increase_vs_normal_ms": 0.03695
     }
   ],
-  "human_summary": "L2 - Layered coordinator/reporting simulation\nPython 3.12.4; Git 173d2072af71d359579caa46210171add54794f0; working tree dirty=False.\nA_normal_reporting: completed=10/10; response median=0.096ms; reporting median=0.001ms; report failures=0; reporting_pending=0.\nB_reporting_delay_0_5s: completed=10/10; response median=500.782ms; reporting median=500.394ms; report failures=0; reporting_pending=0.\nC_reporting_delay_2s: completed=10/10; response median=2000.941ms; reporting median=2000.522ms; report failures=0; reporting_pending=0.\nD_reporting_failure_after_commit: completed=10/10; response median=0.452ms; reporting median=0.004ms; report failures=10; reporting_pending=10.\nReportingService.catch_up is implemented, but reporting recovery was outside this experiment and was not evaluated."
+  "human_summary": "L2 - Layered coordinator/reporting simulation\nPython 3.12.4; Git d93a0969b5a754e10257c49a3ca9cc1ebc32b82d; working tree dirty=False.\nA_normal_reporting: completed=10/10; response median=0.053ms; reporting median=0.001ms; report failures=0; reporting_pending=0.\nB_reporting_delay_0_5s: completed=10/10; response median=500.653ms; reporting median=500.376ms; report failures=0; reporting_pending=0.\nC_reporting_delay_2s: completed=10/10; response median=2000.659ms; reporting median=2000.381ms; report failures=0; reporting_pending=0.\nD_reporting_failure_after_commit: completed=10/10; response median=0.090ms; reporting median=0.001ms; report failures=10; reporting_pending=10.\nReportingService.catch_up is implemented, but reporting recovery was outside this experiment and was not evaluated."
 }

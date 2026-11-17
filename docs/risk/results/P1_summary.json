@@ -1,13 +1,13 @@
 {
   "experiment_id": "P1",
   "scope": "end-to-end private-canary boundary experiment using both production gateways",
-  "generated_at_utc": "2026-11-17T01:25:27.701817+00:00",
+  "generated_at_utc": "2026-11-17T02:00:30.726388+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
+      "commit_sha": "d93a0969b5a754e10257c49a3ca9cc1ebc32b82d",
       "working_tree_dirty": false
     },
     "experiment_script_sha256": "100dd321c30969e27c3fd382cff0e16ccc1a18abf6495633e9de0bf1a9437e9f",

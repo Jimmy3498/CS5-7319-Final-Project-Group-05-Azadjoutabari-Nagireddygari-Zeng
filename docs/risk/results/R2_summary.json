@@ -1,0 +1,54 @@
+{
+  "experiment_id": "R2",
+  "scope": "admitted pre-commit interruption, startup classification and explicit retry",
+  "generated_at_utc": "2026-11-17T02:00:49.811460+00:00",
+  "environment": {
+    "python_version": "3.12.4",
+    "python_implementation": "CPython",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git": {
+      "commit_sha": "d93a0969b5a754e10257c49a3ca9cc1ebc32b82d",
+      "working_tree_dirty": false
+    },
+    "experiment_script_sha256": "8ecfee96b95bd7c26ad1521a3cce3eb23f9c00a917ca74360f626c7b130d4662",
+    "support_script_sha256": "d6c7bc141c9ff9fe3bbb0ed32d6e562b457cb0e1a4de49bb5465acd6ec7480d6"
+  },
+  "configuration": {
+    "architectures": [
+      "Layered",
+      "Event-Based"
+    ],
+    "repetitions_per_architecture": 3,
+    "startup_sequence": "initialize schema; fail abandoned running attempts; recover committed consumers",
+    "provider": "deterministic recording provider; called only after explicit retry"
+  },
+  "conditions": [
+    {
+      "architecture": "Layered",
+      "trials": 3,
+      "passed": 3,
+      "provider_calls_before_retry": 0,
+      "provider_calls_after_retry": 6,
+      "version_attribution_passed": 3,
+      "recovery_ms": {
+        "minimum": 4.8873,
+        "median": 5.1283,
+        "maximum": 5.4443
+      }
+    },
+    {
+      "architecture": "Event-Based",
+      "trials": 3,
+      "passed": 3,
+      "provider_calls_before_retry": 0,
+      "provider_calls_after_retry": 6,
+      "version_attribution_passed": 3,
+      "recovery_ms": {
+        "minimum": 5.9764,
+        "median": 7.2731,
+        "maximum": 8.4962
+      }
+    }
+  ],
+  "all_trials_passed": true
+}

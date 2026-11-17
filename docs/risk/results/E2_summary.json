@@ -1,13 +1,13 @@
 {
   "experiment_id": "E2",
   "scope": "controlled shutdown with queued synthetic messages; not an unexpected crash or successfully processed gameplay-turn loss test",
-  "generated_at_utc": "2026-11-17T01:20:23.534117+00:00",
+  "generated_at_utc": "2026-11-17T01:55:32.435386+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
+      "commit_sha": "d93a0969b5a754e10257c49a3ca9cc1ebc32b82d",
       "working_tree_dirty": false,
       "metadata_error": null
     },
@@ -29,7 +29,7 @@
       "pending_before_action": 0,
       "final_queue_depth": 0,
       "fresh_bus_queue_depth": null,
-      "close_time_ms": 0.0086,
+      "close_time_ms": 0.0078,
       "failure_categories": {}
     },
     {
@@ -41,7 +41,7 @@
       "pending_before_action": 10,
       "final_queue_depth": 0,
       "fresh_bus_queue_depth": 0,
-      "close_time_ms": 0.041,
+      "close_time_ms": 0.0306,
       "failure_categories": {
         "queue_closed_before_dispatch": 10
       }
@@ -57,7 +57,7 @@
       "pending_before_action": 0,
       "final_queue_depth": 0,
       "fresh_bus_queue_depth": null,
-      "close_time_ms": 0.0086,
+      "close_time_ms": 0.0078,
       "failure_categories": {}
     },
     {
@@ -69,12 +69,12 @@
       "pending_before_action": 10,
       "final_queue_depth": 0,
       "fresh_bus_queue_depth": 0,
-      "close_time_ms": 0.041,
+      "close_time_ms": 0.0306,
       "failure_categories": {
         "queue_closed_before_dispatch": 10
       }
     }
   ],
   "architectural_scope": "The observed loss is specific to this in-memory queue and close policy. Event-Based architecture does not inherently require nondurable messaging.",
-  "human_summary": "E2 - Pending-Event Loss During Controlled Shutdown\nControlled shutdown with queued synthetic messages; not an unexpected crash or successfully processed gameplay-turn loss test.\nPython 3.12.4; Git 173d2072af71d359579caa46210171add54794f0; working tree dirty=False.\nnormal_completion: submitted=10, dispatched=10, discarded=0, restored=0, final depth=0, close=0.008600ms.\ncontrolled_shutdown_with_pending_messages: submitted=10, dispatched=0, discarded=10, restored=0, final depth=0, close=0.041000ms.\nThe observed loss is specific to this in-memory queue and close policy. Event-Based architecture does not inherently require nondurable messaging."
+  "human_summary": "E2 - Pending-Event Loss During Controlled Shutdown\nControlled shutdown with queued synthetic messages; not an unexpected crash or successfully processed gameplay-turn loss test.\nPython 3.12.4; Git d93a0969b5a754e10257c49a3ca9cc1ebc32b82d; working tree dirty=False.\nnormal_completion: submitted=10, dispatched=10, discarded=0, restored=0, final depth=0, close=0.007800ms.\ncontrolled_shutdown_with_pending_messages: submitted=10, dispatched=0, discarded=10, restored=0, final depth=0, close=0.030600ms.\nThe observed loss is specific to this in-memory queue and close policy. Event-Based architecture does not inherently require nondurable messaging."
 }

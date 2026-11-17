@@ -2,13 +2,13 @@
   "experiment_id": "L1",
   "label": "Layered coordinator simulation using controlled AI-service delays",
   "scope": "real synchronous Layered coordinator with deterministic fake services; no external AI, real persistence, or SQLite durability claim",
-  "generated_at_utc": "2026-11-17T01:24:41.297494+00:00",
+  "generated_at_utc": "2026-11-17T01:59:48.997332+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
+      "commit_sha": "d93a0969b5a754e10257c49a3ca9cc1ebc32b82d",
       "working_tree_dirty": false,
       "metadata_error": null
     },
@@ -36,41 +36,41 @@
       "total_commits": 10,
       "planning_duration_ms": {
         "count": 10,
-        "minimum": 0.001,
-        "median": 0.00125,
-        "maximum": 0.0016
+        "minimum": 0.0005,
+        "median": 0.0006,
+        "maximum": 0.001
       },
       "narration_duration_ms": {
         "count": 10,
-        "minimum": 0.0006,
-        "median": 0.001,
-        "maximum": 0.0014
+        "minimum": 0.0005,
+        "median": 0.0006,
+        "maximum": 0.0007
       },
       "combined_ai_duration_ms": {
         "count": 10,
-        "minimum": 0.0018,
-        "median": 0.0023,
-        "maximum": 0.0029
+        "minimum": 0.0011,
+        "median": 0.0012,
+        "maximum": 0.0017
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 0.0838,
-        "median": 0.13495,
-        "maximum": 0.2507
+        "minimum": 0.0368,
+        "median": 0.04005,
+        "maximum": 0.1378
       },
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 0.0701,
-        "median": 0.10925,
-        "maximum": 0.2286
+        "minimum": 0.0303,
+        "median": 0.0335,
+        "maximum": 0.1219
       },
       "non_ai_overhead_ms": {
         "count": 10,
-        "minimum": 0.0816,
-        "median": 0.13265,
-        "maximum": 0.2483
+        "minimum": 0.0357,
+        "median": 0.0388,
+        "maximum": 0.1361
       },
-      "median_response_attributed_to_ai_percent": 1.704335
+      "median_response_attributed_to_ai_percent": 2.996255
     },
     {
       "ai_delay_per_call_seconds": 0.5,
@@ -81,41 +81,41 @@
       "total_commits": 10,
       "planning_duration_ms": {
         "count": 10,
-        "minimum": 500.2381,
-        "median": 500.44465,
-        "maximum": 500.6548
+        "minimum": 500.2067,
+        "median": 500.3769,
+        "maximum": 500.7095
       },
       "narration_duration_ms": {
         "count": 10,
-        "minimum": 500.2195,
-        "median": 500.42745,
-        "maximum": 500.7879
+        "minimum": 500.227,
+        "median": 500.44535,
+        "maximum": 500.7052
       },
       "combined_ai_duration_ms": {
         "count": 10,
-        "minimum": 1000.5203,
-        "median": 1000.91805,
-        "maximum": 1001.0709
+        "minimum": 1000.4829,
+        "median": 1000.9098,
+        "maximum": 1001.1245
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 1000.8934,
-        "median": 1001.3173,
-        "maximum": 1001.5085
+        "minimum": 1000.6577,
+        "median": 1001.19855,
+        "maximum": 1001.3757
       },
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 1000.7889,
-        "median": 1001.2391,
-        "maximum": 1001.4544
+        "minimum": 1000.6169,
+        "median": 1001.1368,
+        "maximum": 1001.3231
       },
       "non_ai_overhead_ms": {
         "count": 10,
-        "minimum": 0.3219,
-        "median": 0.4065,
-        "maximum": 0.4899
+        "minimum": 0.1565,
+        "median": 0.2671,
+        "maximum": 0.3118
       },
-      "median_response_attributed_to_ai_percent": 99.960128
+      "median_response_attributed_to_ai_percent": 99.97116
     },
     {
       "ai_delay_per_call_seconds": 2.0,
@@ -126,41 +126,41 @@
       "total_commits": 10,
       "planning_duration_ms": {
         "count": 10,
-        "minimum": 2000.3962,
-        "median": 2000.53455,
-        "maximum": 2000.6917
+        "minimum": 2000.1875,
+        "median": 2000.4498,
+        "maximum": 2000.6761
       },
       "narration_duration_ms": {
         "count": 10,
-        "minimum": 2000.242,
-        "median": 2000.36695,
-        "maximum": 2001.5721
+        "minimum": 2000.2422,
+        "median": 2000.4589,
+        "maximum": 2000.6221
       },
       "combined_ai_duration_ms": {
         "count": 10,
-        "minimum": 4000.7036,
-        "median": 4000.9291,
-        "maximum": 4002.2638
+        "minimum": 4000.6164,
+        "median": 4001.01655,
+        "maximum": 4001.2902
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 4001.1116,
-        "median": 4001.45705,
-        "maximum": 4002.7354
+        "minimum": 4000.8403,
+        "median": 4001.3096,
+        "maximum": 4001.5801
       },
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 4001.0288,
-        "median": 4001.3797,
-        "maximum": 4002.6511
+        "minimum": 4000.7767,
+        "median": 4001.2401,
+        "maximum": 4001.548
       },
       "non_ai_overhead_ms": {
         "count": 10,
-        "minimum": 0.3525,
-        "median": 0.47215,
-        "maximum": 1.2536
+        "minimum": 0.2239,
+        "median": 0.29525,
+        "maximum": 0.5108
       },
-      "median_response_attributed_to_ai_percent": 99.986806
+      "median_response_attributed_to_ai_percent": 99.992676
     },
     {
       "ai_delay_per_call_seconds": 4.0,
@@ -171,41 +171,41 @@
       "total_commits": 10,
       "planning_duration_ms": {
         "count": 10,
-        "minimum": 4000.2195,
-        "median": 4000.39895,
-        "maximum": 4000.6854
+        "minimum": 4000.0976,
+        "median": 4000.52825,
+        "maximum": 4000.6118
       },
       "narration_duration_ms": {
         "count": 10,
-        "minimum": 4000.2599,
-        "median": 4000.5223,
-        "maximum": 4002.0989
+        "minimum": 4000.0971,
+        "median": 4000.49815,
+        "maximum": 4000.8023
       },
       "combined_ai_duration_ms": {
         "count": 10,
-        "minimum": 8000.4794,
-        "median": 8000.96595,
-        "maximum": 8002.4705
+        "minimum": 8000.6991,
+        "median": 8001.0354,
+        "maximum": 8001.266
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 8000.8823,
-        "median": 8001.4505,
-        "maximum": 8002.8604
+        "minimum": 8001.0448,
+        "median": 8001.3173,
+        "maximum": 8001.6583
       },
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 8000.8003,
-        "median": 8001.32365,
-        "maximum": 8002.8144
+        "minimum": 8000.9711,
+        "median": 8001.25885,
+        "maximum": 8001.5438
       },
       "non_ai_overhead_ms": {
         "count": 10,
-        "minimum": 0.3655,
-        "median": 0.45305,
-        "maximum": 0.6553
+        "minimum": 0.2164,
+        "median": 0.33965,
+        "maximum": 0.442
       },
-      "median_response_attributed_to_ai_percent": 99.993944
+      "median_response_attributed_to_ai_percent": 99.996477
     },
     {
       "ai_delay_per_call_seconds": 6.0,
@@ -216,42 +216,42 @@
       "total_commits": 10,
       "planning_duration_ms": {
         "count": 10,
-        "minimum": 6000.1071,
-        "median": 6000.5239,
-        "maximum": 6000.6906
+        "minimum": 6000.1492,
+        "median": 6000.5721,
+        "maximum": 6001.2054
       },
       "narration_duration_ms": {
         "count": 10,
-        "minimum": 6000.2158,
-        "median": 6000.45285,
-        "maximum": 6000.8447
+        "minimum": 6000.2419,
+        "median": 6000.43025,
+        "maximum": 6001.0495
       },
       "combined_ai_duration_ms": {
         "count": 10,
-        "minimum": 12000.5693,
-        "median": 12000.9724,
-        "maximum": 12001.135
+        "minimum": 12000.4619,
+        "median": 12000.9364,
+        "maximum": 12002.2549
       },
       "total_submit_response_ms": {
         "count": 10,
-        "minimum": 12001.0374,
-        "median": 12001.48135,
-        "maximum": 12001.6444
+        "minimum": 12000.8117,
+        "median": 12001.2384,
+        "maximum": 12005.6504
       },
       "submission_to_commit_ms": {
         "count": 10,
-        "minimum": 12000.9422,
-        "median": 12001.3523,
-        "maximum": 12001.5558
+        "minimum": 12000.7233,
+        "median": 12001.19035,
+        "maximum": 12005.5443
       },
       "non_ai_overhead_ms": {
         "count": 10,
-        "minimum": 0.3376,
-        "median": 0.4678,
-        "maximum": 0.6584
+        "minimum": 0.218,
+        "median": 0.3261,
+        "maximum": 3.3955
       },
-      "median_response_attributed_to_ai_percent": 99.995759
+      "median_response_attributed_to_ai_percent": 99.997484
     }
   ],
-  "human_summary": "L1 - Layered coordinator simulation using controlled AI-service delays\nPython 3.12.4; Git 173d2072af71d359579caa46210171add54794f0; working tree dirty=False.\ndelay=0.0s/call: 10/10 completed; response min/median/max=0.084/0.135/0.251ms; AI contribution=1.704%.\ndelay=0.5s/call: 10/10 completed; response min/median/max=1000.893/1001.317/1001.509ms; AI contribution=99.960%.\ndelay=2.0s/call: 10/10 completed; response min/median/max=4001.112/4001.457/4002.735ms; AI contribution=99.987%.\ndelay=4.0s/call: 10/10 completed; response min/median/max=8000.882/8001.450/8002.860ms; AI contribution=99.994%.\ndelay=6.0s/call: 10/10 completed; response min/median/max=12001.037/12001.481/12001.644ms; AI contribution=99.996%.\nThe measurements characterize synchronous coordinator latency with controlled delays; they do not measure a real provider or prove durable commitment."
+  "human_summary": "L1 - Layered coordinator simulation using controlled AI-service delays\nPython 3.12.4; Git d93a0969b5a754e10257c49a3ca9cc1ebc32b82d; working tree dirty=False.\ndelay=0.0s/call: 10/10 completed; response min/median/max=0.037/0.040/0.138ms; AI contribution=2.996%.\ndelay=0.5s/call: 10/10 completed; response min/median/max=1000.658/1001.199/1001.376ms; AI contribution=99.971%.\ndelay=2.0s/call: 10/10 completed; response min/median/max=4000.840/4001.310/4001.580ms; AI contribution=99.993%.\ndelay=4.0s/call: 10/10 completed; response min/median/max=8001.045/8001.317/8001.658ms; AI contribution=99.996%.\ndelay=6.0s/call: 10/10 completed; response min/median/max=12000.812/12001.238/12005.650ms; AI contribution=99.997%.\nThe measurements characterize synchronous coordinator latency with controlled delays; they do not measure a real provider or prove durable commitment."
 }

@@ -1,7 +1,7 @@
 experiment_id,architecture,repetition,status_at_interruption,pending_notices_before_restart,consumer_receipts_before_restart,pending_notices_after_restart,consumer_receipts_after_restart,state_revision_after_restart,accepted_turns_after_restart,provider_calls_before_restart,provider_calls_after_restart,recovery_ms,recovery_passed
-R1,Layered,1,failed,1,0,0,2,1,1,2,2,24.627,True
-R1,Layered,2,failed,1,0,0,2,1,1,2,2,25.5334,True
-R1,Layered,3,failed,1,0,0,2,1,1,2,2,24.6568,True
-R1,Event-Based,1,running,1,0,0,2,1,1,2,2,23.8034,True
-R1,Event-Based,2,running,1,0,0,2,1,1,2,2,28.5194,True
-R1,Event-Based,3,running,1,0,0,2,1,1,2,2,22.362,True
+R1,Layered,1,failed,1,0,0,2,1,1,2,2,13.1327,True
+R1,Layered,2,failed,1,0,0,2,1,1,2,2,14.0554,True
+R1,Layered,3,failed,1,0,0,2,1,1,2,2,17.1247,True
+R1,Event-Based,1,running,1,0,0,2,1,1,2,2,16.6858,True
+R1,Event-Based,2,running,1,0,0,2,1,1,2,2,22.638,True
+R1,Event-Based,3,running,1,0,0,2,1,1,2,2,18.825,True

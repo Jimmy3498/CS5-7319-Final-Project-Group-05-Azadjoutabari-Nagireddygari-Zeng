@@ -1,13 +1,13 @@
 {
   "experiment_id": "R1",
   "scope": "controlled interruption after durable commit and before consumer acknowledgement",
-  "generated_at_utc": "2026-11-17T01:25:41.424258+00:00",
+  "generated_at_utc": "2026-11-17T02:00:41.043484+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
+      "commit_sha": "d93a0969b5a754e10257c49a3ca9cc1ebc32b82d",
       "working_tree_dirty": false
     },
     "experiment_script_sha256": "1cc76d217a18e0de446a7058762fcd7d8942c8a5999803086bc91b441387795f",
@@ -31,9 +31,9 @@
         "failed"
       ],
       "recovery_ms": {
-        "minimum": 24.627,
-        "median": 24.6568,
-        "maximum": 25.5334
+        "minimum": 13.1327,
+        "median": 14.0554,
+        "maximum": 17.1247
       },
       "provider_calls_before_restart": 6,
       "provider_calls_after_restart": 6,
@@ -47,9 +47,9 @@
         "running"
       ],
       "recovery_ms": {
-        "minimum": 22.362,
-        "median": 23.8034,
-        "maximum": 28.5194
+        "minimum": 16.6858,
+        "median": 18.825,
+        "maximum": 22.638
       },
       "provider_calls_before_restart": 6,
       "provider_calls_after_restart": 6,

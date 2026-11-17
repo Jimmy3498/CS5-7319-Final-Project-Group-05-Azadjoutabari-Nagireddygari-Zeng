@@ -1,0 +1,7 @@
+experiment_id,architecture,repetition,receipt_before_restart,attempt_before_restart,receipt_after_restart,attempt_after_restart,public_error_after_restart,uncertain_after_restart,pending_notices_after_restart,provider_calls_before_retry,retry_receipt_status,retry_linked_to_interrupted_attempt,interrupted_version_matches_session,retry_version_matches_session,provider_calls_after_retry,state_revision_after_retry,accepted_turns_after_retry,version_report_accepted_turns,second_restart_stable,recovery_ms,recovery_passed
+R2,Layered,1,running,running,failed,failed,provider_outcome_uncertain,True,0,0,completed,True,True,True,2,1,1,1,True,5.1283,True
+R2,Layered,2,running,running,failed,failed,provider_outcome_uncertain,True,0,0,completed,True,True,True,2,1,1,1,True,5.4443,True
+R2,Layered,3,running,running,failed,failed,provider_outcome_uncertain,True,0,0,completed,True,True,True,2,1,1,1,True,4.8873,True
+R2,Event-Based,1,running,running,failed,failed,provider_outcome_uncertain,True,0,0,completed,True,True,True,2,1,1,1,True,5.9764,True
+R2,Event-Based,2,running,running,failed,failed,provider_outcome_uncertain,True,0,0,completed,True,True,True,2,1,1,1,True,8.4962,True
+R2,Event-Based,3,running,running,failed,failed,provider_outcome_uncertain,True,0,0,completed,True,True,True,2,1,1,1,True,7.2731,True
