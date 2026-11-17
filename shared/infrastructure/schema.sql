@@ -44,6 +44,7 @@ CREATE TABLE session_version_memberships (
 CREATE TABLE turn_attempts (
  id TEXT PRIMARY KEY, operation_id TEXT NOT NULL REFERENCES operation_receipts(operation_id),
  session_id TEXT NOT NULL REFERENCES playthroughs(id), prior_attempt_id TEXT REFERENCES turn_attempts(id),
+ base_version_id TEXT REFERENCES published_versions(id), -- NULL only for unattributable legacy attempts
  expected_revision INTEGER NOT NULL, state TEXT NOT NULL,
  player_input TEXT NOT NULL, -- owner-private retry input; never a public event/log field
  provider_outcome_uncertain INTEGER NOT NULL CHECK(provider_outcome_uncertain IN (0,1)),
