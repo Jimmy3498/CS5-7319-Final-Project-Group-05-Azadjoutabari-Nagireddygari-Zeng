@@ -26,7 +26,11 @@ and Streamlit pages; they differ in workflow coordination and connectors.
 
 - `tests/test_event_gameplay_mvp.py` exercises the full queued turn, commit, result/report
   subscribers, milestone projection, and restart recovery without another model call.
-- Layered gameplay tests cover commit replay, invalid effects, uncertain outcomes, and linked retry.
+- `tests/test_layered_turn.py::LayeredTurnTests.test_turn_commits_and_replays_after_reopening`
+  exercises Layered restart catch-up without another model call; the same module also covers commit
+  replay, invalid effects, uncertain outcomes, and linked retry.
+- Dedicated risk tests cover private-canary isolation through both gateways and controlled
+  commit-before-acknowledgement interruption/restart recovery in both architectures.
 - Provider tests verify all three supported request/response protocols against a local HTTP server.
 - Streamlit AppTest renders both entrypoints and exercises authentication and campaign creation.
 - Final verification: 94 tests pass with one Windows symlink-privilege skip; Ruff, formatting,

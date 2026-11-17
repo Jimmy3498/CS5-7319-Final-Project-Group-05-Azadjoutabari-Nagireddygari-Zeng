@@ -107,15 +107,19 @@ Existing experiments and recorded results are in [the risk report](risk/REPORT.m
 For each selected risk, record its cause, affected requirement, test scenario, observed consequence,
 mitigation and remaining limitation. Evaluate both architectures using comparable conditions.
 
-| Risk to investigate | Experiment | Evidence |
+| Risk | Recorded experiment | Status and evidence |
 |---|---|---|
-| Slow provider/single-worker blocking | Inject the same provider delay and a second independent request | Queue wait, completion time and call/dispatch traces |
-| Commit-before-notification failure | Interrupt after commit, resume and redeliver the notice | Preserved state, recovery time and zero duplicate local effects |
-| Reporting failure | Fail the report path while processing an accepted turn | Gameplay result, report lag and catch-up behavior |
-| Private data crossing an interface | Submit tagged private canaries through planning/narration and queries | Exact outgoing payloads and negative isolation assertions |
+| Single-worker blocking | E1: controlled slow handler and independent burst | Complete: queue wait, throughput and pending depth |
+| Queued work at shutdown | E2: close with pending synthetic messages | Complete: dispatch, discard and restoration accounting |
+| Layered provider latency | L1: two controlled sequential AI delays | Complete: per-stage and total response timing |
+| Reporting delay/failure | L2: post-commit reporting delay and exception | Complete: response delay, preserved result and pending flag |
+| Private data crossing an interface | P1: tagged private and credential canaries through both gateways | Complete: exact provider-boundary checks and negative public/trace assertions |
+| Commit-before-notification interruption | R1: interrupt after commit and before acknowledgements in both gateways | Complete: preserved state, recovery time, two consumer acknowledgements and zero provider replay |
 
 Use the same campaign, input sequence, prompts, scripted responses/delays and persistence semantics.
 Record the environment, versions, traces, sample counts and ranges. Measure provider time separately
-from submit-to-confirm, dispatch, persistence, report lag and recovery. Include stale updates, invalid
-proposals, duplicate delivery and storage/subscriber failures. Run these experiments on completed
-workflows and use the results to justify the final style selection.
+from submit-to-confirm, dispatch, persistence, report lag and recovery. The six completed experiments
+cover the selected risks above. Stale updates, partial reporting writes, concurrent load, duplicate
+delivery and additional storage/subscriber failure points remain follow-up scenarios rather than
+recorded experiment evidence. Use the completed workflow evidence without claiming a universal style
+winner.
