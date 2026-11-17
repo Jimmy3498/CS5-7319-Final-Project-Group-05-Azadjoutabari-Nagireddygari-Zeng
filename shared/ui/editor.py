@@ -166,49 +166,124 @@ def _characters_tab(buffer: EditorBuffer) -> None:
     if not locations:
         st.info("Add a location before creating a character.")
         return
-    with st.form(f"character_add_{buffer.campaign_id}_{buffer.local_revision}"):
-        name = st.text_input("Character name")
-        playable = st.checkbox("Playable preset")
+    choices = [None, *(character.id for character in characters)]
+    selection_key = f"editor_character_{buffer.campaign_id}"
+    if st.session_state.get(selection_key) not in choices:
+        st.session_state[selection_key] = None
+    selected_id = st.selectbox(
+        "Character",
+        choices,
+        format_func=lambda identity: (
+            "Add a character"
+            if identity is None
+            else next(c.name for c in characters if c.id == identity)
+        ),
+        key=selection_key,
+    )
+    selected = next((c for c in characters if c.id == selected_id), None)
+    location_ids = [location.id for location in locations]
+    if selected and selected.location_id not in location_ids:
+        location_ids.append(selected.location_id)
+    with st.form(f"character_form_{buffer.campaign_id}_{buffer.local_revision}_{selected_id}"):
+        name = st.text_input("Character name", value=selected.name if selected else "")
+        playable = st.checkbox("Playable preset", value=selected.playable if selected else False)
         location_id = st.selectbox(
             "Starting location",
-            [location.id for location in locations],
+            location_ids,
+            index=location_ids.index(selected.location_id) if selected else 0,
             format_func=lambda identity: next(
-                location.name for location in locations if location.id == identity
+                (location.name for location in locations if location.id == identity),
+                f"Missing location: {identity}",
             ),
         )
-        appearance = st.text_area("Appearance")
-        personality = st.text_area("Personality")
-        history = st.text_area("Personal history")
-        expression = st.text_area("Expression style")
-        stat_name = st.text_input("Optional stat name")
-        stat_value = st.number_input("Initial value", value=0.0)
-        add = st.form_submit_button("Add character", type="primary")
-    if add:
-        identity = f"character-{uuid4().hex[:12]}"
-        public = Access(Visibility.PUBLIC)
-        private = Access(Visibility.CHARACTER, (identity,))
-        stats = ()
-        if stat_name.strip():
-            stats = (
-                NumericStat(
-                    f"stat-{uuid4().hex[:12]}", stat_name.strip(), stat_value, -100.0, 100.0, public
-                ),
-            )
-        character = Character(
-            identity,
-            name.strip(),
-            playable,
-            location_id,
-            TextRecord(f"{identity}-appearance", "Appearance", appearance.strip(), public),
-            TextRecord(f"{identity}-expression", "Expression", expression.strip(), public),
-            TextRecord(f"{identity}-personality", "Personality", personality.strip(), private),
-            TextRecord(f"{identity}-history", "History", history.strip(), private),
-            (),
-            stats,
+        appearance = st.text_area("Appearance", value=selected.appearance.text if selected else "")
+        personality = st.text_area(
+            "Personality", value=selected.personality.text if selected else ""
         )
-        world = replace(buffer.content.world, characters=(*characters, character))
+        history = st.text_area(
+            "Personal history", value=selected.personal_history.text if selected else ""
+        )
+        expression = st.text_area(
+            "Expression style", value=selected.expression_style.text if selected else ""
+        )
+        if selected is None:
+            stat_name = st.text_input("Optional stat name")
+            stat_value = st.number_input("Initial value", value=0.0)
+        apply_character = st.form_submit_button(
+            "Update character" if selected else "Add character", type="primary"
+        )
+    if apply_character:
+        if selected:
+            character = replace(
+                selected,
+                name=name.strip(),
+                playable=playable,
+                location_id=location_id,
+                appearance=replace(selected.appearance, text=appearance.strip()),
+                personality=replace(selected.personality, text=personality.strip()),
+                personal_history=replace(selected.personal_history, text=history.strip()),
+                expression_style=replace(selected.expression_style, text=expression.strip()),
+            )
+            updated = tuple(character if c.id == selected.id else c for c in characters)
+        else:
+            identity = f"character-{uuid4().hex[:12]}"
+            public = Access(Visibility.PUBLIC)
+            private = Access(Visibility.CHARACTER, (identity,))
+            stats = ()
+            if stat_name.strip():
+                stats = (
+                    NumericStat(
+                        f"stat-{uuid4().hex[:12]}",
+                        stat_name.strip(),
+                        stat_value,
+                        -100.0,
+                        100.0,
+                        public,
+                    ),
+                )
+            character = Character(
+                identity,
+                name.strip(),
+                playable,
+                location_id,
+                TextRecord(f"{identity}-appearance", "Appearance", appearance.strip(), public),
+                TextRecord(f"{identity}-expression", "Expression", expression.strip(), public),
+                TextRecord(f"{identity}-personality", "Personality", personality.strip(), private),
+                TextRecord(f"{identity}-history", "History", history.strip(), private),
+                (),
+                stats,
+            )
+            updated = (*characters, character)
+        world = replace(buffer.content.world, characters=updated)
         _set_content(buffer, replace(buffer.content, world=world))
         st.rerun()
+    if selected:
+        st.caption("Changes update the local buffer. Use Save draft to persist them.")
+        with st.expander("Author-only knowledge and stats"):
+            st.caption(
+                "Preview only; updating this form preserves these records and visibility settings."
+            )
+            for record in selected.knowledge:
+                st.markdown(
+                    f"**{record.title}** ({record.access.visibility.value}; {record.stance})"
+                )
+                st.write(record.text)
+            if not selected.knowledge:
+                st.write("No additional knowledge records.")
+            st.dataframe(
+                [
+                    {
+                        "Stat": stat.name,
+                        "Value": stat.value,
+                        "Minimum": stat.minimum,
+                        "Maximum": stat.maximum,
+                        "Visibility": stat.access.visibility.value,
+                    }
+                    for stat in selected.stats
+                ],
+                hide_index=True,
+                width="stretch",
+            )
     if characters:
         remove_id = st.selectbox(
             "Remove character",
