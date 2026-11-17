@@ -43,10 +43,14 @@ classDiagram
   LayeredApplication --> Services
   EventGateway --> InProcessBus
   EventGateway --> OperationStatusStore
+  EventGateway --> CompletionRecovery
+  EventGateway --> QueryService : read-only queries
+  LayeredGateway --> QueryService : read-only queries
   InProcessBus --> ComponentHandlers
   ComponentHandlers --> Services
   ComponentHandlers --> WorkflowStateStore
   CompletionRecovery --> InProcessBus
+  CompletionRecovery --> Services
   Services o-- AccountService
   Services o-- WorldService
   Services o-- EditorService
@@ -67,5 +71,7 @@ classDiagram
   ProfileService --> CredentialStore
   LocalCredentialStore ..|> CredentialStore
   WorkflowStateStore o-- EditorWork
-  WorkflowStateStore ..> TurnWork : private staged state
-  WorkflowStateStore ..> NarrationWork : player-only projection
+  WorkflowStateStore o-- TurnWork : private staged state
+  WorkflowStateStore o-- NarrationWork : private narration-stage state
+  note for NarrationWork "Includes candidate snapshot and PlayerView; AIService.narrate receives only PlayerView."
+  note for ScriptedTestProvider "Test adapter; not used by live demos."

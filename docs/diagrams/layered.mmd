@@ -5,12 +5,14 @@ flowchart TB
   subgraph A[Application]
     GW[LayeredGateway]
     APP[LayeredApplication]
+    STATUS[OperationStatusStore]
   end
   subgraph D[Domain-facing capabilities]
     AUTH[AccountService]
     WORLD[WorldService / EditorService]
     PLAY[GameplayService / KnowledgePolicy / AIService]
-    EXTRA[ProfileService / UpdateService / ReportingService / QueryService]
+    EXTRA[ProfileService / UpdateService / ReportingService]
+    QUERY[QueryService]
   end
   subgraph I[Infrastructure implementations]
     SQL[SQLiteStore]
@@ -18,8 +20,10 @@ flowchart TB
     SEC[LocalCredentialStore / ScryptPasswordHasher]
   end
   UI -->|submit / poll / query| GW
-  GW --> APP
+  GW -->|commands: direct call| APP
+  GW -->|read-only queries| QUERY
+  GW -->|poll receipts| STATUS
   APP --> AUTH & WORLD & PLAY & EXTRA
-  AUTH & WORLD & PLAY & EXTRA -->|typed ports| SQL
+  AUTH & WORLD & PLAY & EXTRA & QUERY -->|repository ports| SQL
   PLAY -->|ProviderTransport| HTTP
-  AUTH & EXTRA --> SEC
+  AUTH & EXTRA -->|PasswordHasher / CredentialStore| SEC

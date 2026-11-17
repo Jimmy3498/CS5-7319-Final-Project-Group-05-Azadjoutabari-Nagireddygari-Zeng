@@ -1,28 +1,32 @@
 flowchart LR
-  %% Implemented command, editor, gameplay, reporting and recovery topology.
-  UI[ScreenController] --> GW[EventGateway]
-  GW -->|enqueue command| BUS[InProcessBus / Queue]
-  BUS --> AUTH[Accounts / campaigns / profiles handlers]
-  BUS --> ADMIT[Gameplay admission]
-  ADMIT -->|context prepared| BUS
-  BUS --> PLAN[Director model]
-  PLAN -->|plan proposed| BUS
-  BUS --> VALIDATE[Validation / disclosure / projection]
-  VALIDATE -->|narration work ready| BUS
-  BUS --> NARRATE[Narrator model]
-  NARRATE -->|narration proposed| BUS
-  BUS --> COMMIT[Persistence handler]
-  COMMIT -->|atomic commit| SQL[SQLiteStore + pending notices]
-  COMMIT -->|turn committed IDs| BUS
-  BUS --> RESULT[Result subscriber]
-  BUS --> REPORT[Independent report subscriber]
-  SQL --> RECOVER[CompletionRecovery]
-  RECOVER -->|notifications only| BUS
+  %% Command-workflow overview; handler nodes are methods of ComponentHandlers.
+  %% Solid arrows: local calls/data access. Dashed arrows: queued event publication/dispatch.
+  UI[ScreenController] -->|submit / poll / query| GW[EventGateway]
+  GW -->|read-only queries| QUERY[QueryService]
+  GW -->|poll receipts| STATUS[OperationStatusStore]
+  GW -.->|enqueue command| BUS["InProcessBus: in-memory FIFO<br/>one worker; sequential subscribers"]
+  BUS -.-> AUTH[Accounts / campaigns / profiles handlers]
+  BUS -.-> ADMIT[Gameplay admission]
+  ADMIT -.->|context prepared| BUS
+  BUS -.-> PLAN[Director model]
+  PLAN -.->|plan proposed| BUS
+  BUS -.-> VALIDATE[Validation / disclosure / projection]
+  VALIDATE -.->|narration work ready| BUS
+  BUS -.-> NARRATE["Narrator handler<br/>provider receives PlayerView only"]
+  NARRATE -.->|narration proposed| BUS
+  BUS -.-> COMMIT[Persistence handler]
+  COMMIT -->|GameplayService / atomic commit| SQL[SQLiteStore + pending notices]
+  COMMIT -.->|turn committed IDs| BUS
+  BUS -.-> RESULT[Result subscriber]
+  BUS -.-> REPORT[Separately registered report subscriber]
+  RECOVER[CompletionRecovery] -->|read committed notices| SQL
+  RECOVER -.->|committed notice IDs only| BUS
   AUTH & ADMIT & PLAN & VALIDATE & NARRATE & COMMIT & REPORT --> SHARED[Shared domain capabilities / adapters]
-  BUS --> EDIT_PREP[Editor prepare and capture]
-  EDIT_PREP -->|EDITOR_CONTEXT reference| BUS
-  BUS --> EDIT_AI[Editor proposal model]
-  EDIT_AI -->|EDITOR_CANDIDATE reference| BUS
-  BUS --> EDIT_RETAIN[Editor proposal retention]
-  EDIT_RETAIN --> EDIT_STORE[SQLite proposal repository]
+  BUS -.-> EDIT_PREP[Editor prepare and capture]
+  EDIT_PREP -.->|EDITOR_CONTEXT reference| BUS
+  BUS -.-> EDIT_AI[Editor proposal model]
+  EDIT_AI -.->|EDITOR_CANDIDATE reference| BUS
+  BUS -.-> EDIT_RETAIN[Editor proposal retention]
+  EDIT_RETAIN -->|EditorService| EDIT_STORE[SQLite proposal repository]
   EDIT_PREP & EDIT_AI & EDIT_RETAIN --> SHARED
+  %% Both application bootstraps fail interrupted attempts before accepting requests; no provider replay.
