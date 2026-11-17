@@ -1,0 +1,48 @@
+{
+  "experiment_id": "P1",
+  "scope": "end-to-end private-canary boundary experiment using both production gateways",
+  "generated_at_utc": "2026-11-17T01:25:27.701817+00:00",
+  "environment": {
+    "python_version": "3.12.4",
+    "python_implementation": "CPython",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "git": {
+      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
+      "working_tree_dirty": false
+    },
+    "experiment_script_sha256": "100dd321c30969e27c3fd382cff0e16ccc1a18abf6495633e9de0bf1a9437e9f",
+    "support_script_sha256": "d6c7bc141c9ff9fe3bbb0ed32d6e562b457cb0e1a4de49bb5465acd6ec7480d6"
+  },
+  "configuration": {
+    "architectures": [
+      "Layered",
+      "Event-Based"
+    ],
+    "repetitions_per_architecture": 3,
+    "private_canary_source": "director-only fixture record; value omitted from artifacts",
+    "credential_canary_source": "in-memory credential; value omitted from artifacts"
+  },
+  "conditions": [
+    {
+      "architecture": "Layered",
+      "trials": 3,
+      "passed": 3,
+      "planner_received_private_canary": 3,
+      "narrator_private_canary_exposures": 0,
+      "public_private_canary_exposures": 0,
+      "trace_private_canary_exposures": 0,
+      "credential_exposures": 0
+    },
+    {
+      "architecture": "Event-Based",
+      "trials": 3,
+      "passed": 3,
+      "planner_received_private_canary": 3,
+      "narrator_private_canary_exposures": 0,
+      "public_private_canary_exposures": 0,
+      "trace_private_canary_exposures": 0,
+      "credential_exposures": 0
+    }
+  ],
+  "all_trials_passed": true
+}

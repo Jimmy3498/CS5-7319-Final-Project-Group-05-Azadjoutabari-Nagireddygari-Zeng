@@ -1,13 +1,13 @@
 {
   "experiment_id": "E1",
   "scope": "synthetic connector-level experiment; not end-to-end gameplay throughput",
-  "generated_at_utc": "2026-11-16T19:33:43.885078+00:00",
+  "generated_at_utc": "2026-11-17T01:20:15.320569+00:00",
   "environment": {
     "python_version": "3.12.4",
     "python_implementation": "CPython",
     "platform": "Windows-11-10.0.26200-SP0",
     "git": {
-      "commit_sha": "69a72215d012fae592e8f2edb0f2261aa351641b",
+      "commit_sha": "173d2072af71d359579caa46210171add54794f0",
       "working_tree_dirty": false,
       "metadata_error": null
     },
@@ -35,34 +35,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 5.0,
-      "publication_burst_ms": 0.0855,
-      "total_elapsed_ms": 0.3624,
-      "throughput_events_per_second": 55187.637969,
+      "publication_burst_ms": 0.0775,
+      "total_elapsed_ms": 0.2257,
+      "throughput_events_per_second": 88613.203367,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.105,
-        "mean": 0.152865,
-        "median": 0.15315,
-        "p95": 0.1942,
-        "maximum": 0.1985
+        "minimum": 0.0925,
+        "mean": 0.11115,
+        "median": 0.11135,
+        "p95": 0.1272,
+        "maximum": 0.1292
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 0.0012,
-        "mean": 0.001685,
-        "median": 0.0014,
-        "p95": 0.0029,
-        "maximum": 0.0046
+        "minimum": 0.0009,
+        "mean": 0.001115,
+        "median": 0.001,
+        "p95": 0.0018,
+        "maximum": 0.0024
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 0.1079,
-        "mean": 0.15455,
-        "median": 0.1545,
-        "p95": 0.1954,
-        "maximum": 0.1999
+        "minimum": 0.0949,
+        "mean": 0.112265,
+        "median": 0.1124,
+        "p95": 0.1281,
+        "maximum": 0.1301
       }
     },
     {
@@ -73,34 +73,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 5.0,
-      "publication_burst_ms": 0.0472,
-      "total_elapsed_ms": 0.2071,
-      "throughput_events_per_second": 96571.704491,
+      "publication_burst_ms": 0.1047,
+      "total_elapsed_ms": 0.6215,
+      "throughput_events_per_second": 32180.209171,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.0985,
-        "mean": 0.119205,
-        "median": 0.11855,
-        "p95": 0.1332,
-        "maximum": 0.1345
+        "minimum": 0.1708,
+        "mean": 0.32999,
+        "median": 0.36255,
+        "p95": 0.419,
+        "maximum": 0.4261
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 0.0007,
-        "mean": 0.00092,
-        "median": 0.0007,
-        "p95": 0.0011,
-        "maximum": 0.0039
+        "minimum": 0.0016,
+        "mean": 0.003375,
+        "median": 0.0023,
+        "p95": 0.0091,
+        "maximum": 0.0129
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 0.1024,
-        "mean": 0.120125,
-        "median": 0.11925,
-        "p95": 0.1339,
-        "maximum": 0.1352
+        "minimum": 0.1837,
+        "mean": 0.333365,
+        "median": 0.36465,
+        "p95": 0.4213,
+        "maximum": 0.4282
       }
     },
     {
@@ -111,34 +111,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 5.0,
-      "publication_burst_ms": 0.1056,
-      "total_elapsed_ms": 0.4226,
-      "throughput_events_per_second": 47326.076668,
+      "publication_burst_ms": 0.1859,
+      "total_elapsed_ms": 0.7176,
+      "throughput_events_per_second": 27870.680045,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1343,
-        "mean": 0.240015,
-        "median": 0.2559,
-        "p95": 0.2743,
-        "maximum": 0.2765
+        "minimum": 0.2252,
+        "mean": 0.418175,
+        "median": 0.44595,
+        "p95": 0.4868,
+        "maximum": 0.4914
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 0.0013,
-        "mean": 0.00168,
-        "median": 0.00135,
-        "p95": 0.0032,
-        "maximum": 0.0044
+        "minimum": 0.0024,
+        "mean": 0.00294,
+        "median": 0.00255,
+        "p95": 0.004,
+        "maximum": 0.0062
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 0.1387,
-        "mean": 0.241695,
-        "median": 0.2572,
-        "p95": 0.2756,
-        "maximum": 0.2779
+        "minimum": 0.2298,
+        "mean": 0.421115,
+        "median": 0.44855,
+        "p95": 0.4894,
+        "maximum": 0.4939
       }
     },
     {
@@ -149,34 +149,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 25.0,
-      "publication_burst_ms": 0.0902,
-      "total_elapsed_ms": 10010.2117,
-      "throughput_events_per_second": 1.99796,
+      "publication_burst_ms": 0.2016,
+      "total_elapsed_ms": 10010.6113,
+      "throughput_events_per_second": 1.99788,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1064,
-        "mean": 4755.1567,
-        "median": 4755.4123,
-        "p95": 9009.4594,
-        "maximum": 9509.8328
+        "minimum": 0.2341,
+        "mean": 4754.96344,
+        "median": 4755.0462,
+        "p95": 9009.5457,
+        "maximum": 9509.7835
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 500.2208,
-        "mean": 500.4478,
-        "median": 500.4476,
-        "p95": 500.6747,
-        "maximum": 500.701
+        "minimum": 500.1986,
+        "mean": 500.45748,
+        "median": 500.4213,
+        "p95": 500.7504,
+        "maximum": 500.9756
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 500.8074,
-        "mean": 5255.6045,
-        "median": 5255.75735,
-        "p95": 9509.8065,
-        "maximum": 10010.0536
+        "minimum": 500.615,
+        "mean": 5255.42092,
+        "median": 5255.63715,
+        "p95": 9509.7443,
+        "maximum": 10010.244
       }
     },
     {
@@ -187,34 +187,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 25.0,
-      "publication_burst_ms": 0.0481,
-      "total_elapsed_ms": 10011.8101,
-      "throughput_events_per_second": 1.997641,
+      "publication_burst_ms": 0.0651,
+      "total_elapsed_ms": 10010.8679,
+      "throughput_events_per_second": 1.997829,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.0578,
-        "mean": 4755.852585,
-        "median": 4756.0277,
-        "p95": 9010.3613,
-        "maximum": 9511.0061
+        "minimum": 0.0757,
+        "mean": 4754.989955,
+        "median": 4755.12135,
+        "p95": 9009.6154,
+        "maximum": 9510.1021
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 500.219,
-        "mean": 500.53276,
-        "median": 500.5387,
-        "p95": 500.7797,
-        "maximum": 500.8785
+        "minimum": 500.1519,
+        "mean": 500.475,
+        "median": 500.49045,
+        "p95": 500.7471,
+        "maximum": 500.8361
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 500.6365,
-        "mean": 5256.385345,
-        "median": 5256.63135,
-        "p95": 9510.9418,
-        "maximum": 10011.6813
+        "minimum": 500.7704,
+        "mean": 5255.464955,
+        "median": 5255.3093,
+        "p95": 9510.0443,
+        "maximum": 10010.612
       }
     },
     {
@@ -225,34 +225,34 @@
       "incomplete_events": 0,
       "timed_out": false,
       "timeout_seconds": 25.0,
-      "publication_burst_ms": 0.1086,
-      "total_elapsed_ms": 10010.7119,
-      "throughput_events_per_second": 1.99786,
+      "publication_burst_ms": 0.1931,
+      "total_elapsed_ms": 10012.1388,
+      "throughput_events_per_second": 1.997575,
       "maximum_observed_pending_depth": 20,
       "bus_errors": [],
       "queue_wait_ms": {
         "count": 20,
-        "minimum": 0.1239,
-        "mean": 4754.972735,
-        "median": 4755.118,
-        "p95": 9009.4179,
-        "maximum": 9509.7796
+        "minimum": 0.2366,
+        "mean": 4755.708705,
+        "median": 4756.02215,
+        "p95": 9010.4884,
+        "maximum": 9511.2176
       },
       "processing_ms": {
         "count": 20,
-        "minimum": 500.1958,
-        "mean": 500.47359,
-        "median": 500.5034,
-        "p95": 500.7575,
-        "maximum": 500.7767
+        "minimum": 500.137,
+        "mean": 500.491685,
+        "median": 500.4435,
+        "p95": 500.7199,
+        "maximum": 501.3104
       },
       "end_to_end_ms": {
         "count": 20,
-        "minimum": 500.6218,
-        "mean": 5255.446325,
-        "median": 5255.56555,
-        "p95": 9509.7321,
-        "maximum": 10010.5371
+        "minimum": 500.683,
+        "mean": 5256.20039,
+        "median": 5256.39355,
+        "p95": 9511.1926,
+        "maximum": 10011.8198
       }
     }
   ],
@@ -266,43 +266,43 @@
       "maximum_observed_pending_depth": 20,
       "elapsed_ms_per_repetition": {
         "count": 3,
-        "minimum": 0.2071,
-        "mean": 0.3307,
-        "median": 0.3624,
-        "p95": 0.4226,
-        "maximum": 0.4226
+        "minimum": 0.2257,
+        "mean": 0.5216,
+        "median": 0.6215,
+        "p95": 0.7176,
+        "maximum": 0.7176
       },
       "throughput_events_per_second": {
         "count": 3,
-        "minimum": 47326.076668,
-        "mean": 66361.806376,
-        "median": 55187.637969,
-        "p95": 96571.704491,
-        "maximum": 96571.704491
+        "minimum": 27870.680045,
+        "mean": 49554.697528,
+        "median": 32180.209171,
+        "p95": 88613.203367,
+        "maximum": 88613.203367
       },
       "queue_wait_ms": {
         "count": 60,
-        "minimum": 0.0985,
-        "mean": 0.170695,
-        "median": 0.1396,
-        "p95": 0.2698,
-        "maximum": 0.2765
+        "minimum": 0.0925,
+        "mean": 0.286438,
+        "median": 0.3307,
+        "p95": 0.4751,
+        "maximum": 0.4914
       },
       "processing_ms": {
         "count": 60,
-        "minimum": 0.0007,
-        "mean": 0.001428,
-        "median": 0.0013,
-        "p95": 0.0032,
-        "maximum": 0.0046
+        "minimum": 0.0009,
+        "mean": 0.002477,
+        "median": 0.0023,
+        "p95": 0.0044,
+        "maximum": 0.0129
       },
       "end_to_end_ms": {
         "count": 60,
-        "minimum": 0.1024,
-        "mean": 0.172123,
-        "median": 0.1413,
-        "p95": 0.2711,
-        "maximum": 0.2779
+        "minimum": 0.0949,
+        "mean": 0.288915,
+        "median": 0.3365,
+        "p95": 0.4775,
+        "maximum": 0.4939
       }
     },
     {
@@ -314,45 +314,45 @@
       "maximum_observed_pending_depth": 20,
       "elapsed_ms_per_repetition": {
         "count": 3,
-        "minimum": 10010.2117,
-        "mean": 10010.911233,
-        "median": 10010.7119,
-        "p95": 10011.8101,
-        "maximum": 10011.8101
+        "minimum": 10010.6113,
+        "mean": 10011.206,
+        "median": 10010.8679,
+        "p95": 10012.1388,
+        "maximum": 10012.1388
       },
       "throughput_events_per_second": {
         "count": 3,
-        "minimum": 1.997641,
-        "mean": 1.99782,
-        "median": 1.99786,
-        "p95": 1.99796,
-        "maximum": 1.99796
+        "minimum": 1.997575,
+        "mean": 1.997761,
+        "median": 1.997829,
+        "p95": 1.99788,
+        "maximum": 1.99788
       },
       "queue_wait_ms": {
         "count": 60,
-        "minimum": 0.0578,
-        "mean": 4755.32734,
-        "median": 4755.5868,
-        "p95": 9010.3613,
-        "maximum": 9511.0061
+        "minimum": 0.0757,
+        "mean": 4755.2207,
+        "median": 4755.53145,
+        "p95": 9010.4884,
+        "maximum": 9511.2176
       },
       "processing_ms": {
         "count": 60,
-        "minimum": 500.1958,
-        "mean": 500.484717,
-        "median": 500.4983,
-        "p95": 500.7575,
-        "maximum": 500.8785
+        "minimum": 500.137,
+        "mean": 500.474722,
+        "median": 500.4448,
+        "p95": 500.7504,
+        "maximum": 501.3104
       },
       "end_to_end_ms": {
         "count": 60,
-        "minimum": 500.6218,
-        "mean": 5255.812057,
-        "median": 5256.0111,
-        "p95": 9510.9418,
-        "maximum": 10011.6813
+        "minimum": 500.615,
+        "mean": 5255.695422,
+        "median": 5255.78945,
+        "p95": 9511.1926,
+        "maximum": 10011.8198
       }
     }
   ],
-  "human_summary": "E1 - Single-Worker Queue Bottleneck\nSynthetic connector-level measurements using the production InProcessBus.\nPython 3.12.4; Git 69a72215d012fae592e8f2edb0f2261aa351641b; working tree dirty=False.\nConfiguration: 20 events/repetition, 3 repetitions/condition, delays=[0.0, 0.5], workers=1.\ndelay=0.000s: 60/60 completed; mean elapsed=0.331ms; p95 queue wait=0.270ms; mean throughput=66361.806 events/s; max observed pending=20.\ndelay=0.500s: 60/60 completed; mean elapsed=10010.911ms; p95 queue wait=9010.361ms; mean throughput=1.998 events/s; max observed pending=20.\nInterpretation is limited to the current in-memory, single-worker event connector."
+  "human_summary": "E1 - Single-Worker Queue Bottleneck\nSynthetic connector-level measurements using the production InProcessBus.\nPython 3.12.4; Git 173d2072af71d359579caa46210171add54794f0; working tree dirty=False.\nConfiguration: 20 events/repetition, 3 repetitions/condition, delays=[0.0, 0.5], workers=1.\ndelay=0.000s: 60/60 completed; mean elapsed=0.522ms; p95 queue wait=0.475ms; mean throughput=49554.698 events/s; max observed pending=20.\ndelay=0.500s: 60/60 completed; mean elapsed=10011.206ms; p95 queue wait=9010.488ms; mean throughput=1.998 events/s; max observed pending=20.\nInterpretation is limited to the current in-memory, single-worker event connector."
 }

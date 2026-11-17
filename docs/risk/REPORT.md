@@ -1,6 +1,6 @@
 # Architectural Risk Experiment Report
 
-This report collects the four architectural-risk experiments for the storytelling project. Each
+This report collects the six architectural-risk experiments for the storytelling project. Each
 experiment has the same reporting structure: a short description, procedure, observed results,
 comparison, limitations and a concluding risk assessment. Results are reported only after an
 experiment has been executed; pending sections do not contain estimated or invented measurements.
@@ -18,6 +18,16 @@ its consequences, not from whether the harness itself passed.
 | E2 | Pending-event loss during controlled shutdown | Complete | [Raw CSV](results/E2_raw.csv), [summary JSON](results/E2_summary.json) |
 | L1 | Layered synchronous AI latency | Complete | [Raw CSV](results/L1_raw.csv), [summary JSON](results/L1_summary.json) |
 | L2 | Layered reporting delay and failure | Complete | [Raw CSV](results/L2_raw.csv), [summary JSON](results/L2_summary.json) |
+| P1 | Cross-architecture private-data isolation | Complete | [Raw CSV](results/P1_raw.csv), [summary JSON](results/P1_summary.json) |
+| R1 | Cross-architecture commit-then-interrupt recovery | Complete | [Raw CSV](results/R1_raw.csv), [summary JSON](results/R1_summary.json) |
+
+All six final campaigns were executed **serially**, one experiment at a time, in separate clean detached
+worktrees at the same source commit. The generated timestamp in each summary is the end-of-run artifact
+time, not a shared batch timestamp. This removes concurrent experiment load as a timing confound.
+The final automated validation ran 98 tests successfully with one Windows symlink-privilege skip, and
+Ruff reported no issues. Script digests in the summaries match the exact clean-worktree bytes executed;
+Git's Windows line-ending checkout filter can produce a different raw-byte digest in another worktree
+without changing the committed source text.
 
 ## E1 — Single-Worker Queue Bottleneck
 
@@ -78,9 +88,10 @@ required timestamps are present and output files have the declared fields. They 
 | Clock | `time.perf_counter_ns()` |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Git commit | `173d2072af71d359579caa46210171add54794f0` |
 | Working tree | Clean at experiment start (`working_tree_dirty=false`) |
-| Generated | November 16, 2026 at 19:33 UTC |
+| Execution | Serial; no other risk campaign running |
+| Generated | November 17, 2026 at 01:20 UTC |
 
 The experiment script's SHA-256 digest is retained in the summary JSON so that the results can be
 matched to the exact measured script. The recorded commit contains the experiment script and tests,
@@ -97,14 +108,14 @@ handling or failed processing.
 | Completed events | 60 / 60 | 60 / 60 |
 | Incomplete events | 0 | 0 |
 | Bus errors | 0 | 0 |
-| Mean elapsed time per 20-event burst | 0.331 ms | 10,010.911 ms |
-| Mean queue waiting time | 0.171 ms | 4,755.327 ms |
-| P95 queue waiting time | 0.270 ms | 9,010.361 ms |
-| Maximum queue waiting time | 0.277 ms | 9,511.006 ms |
-| Mean handler processing time | 0.001 ms | 500.485 ms |
-| P95 end-to-end event latency | 0.271 ms | 9,510.942 ms |
-| Maximum end-to-end event latency | 0.278 ms | 10,011.681 ms |
-| Mean observed throughput | 66,361.806 events/s | 1.998 events/s |
+| Mean elapsed time per 20-event burst | 0.522 ms | 10,011.206 ms |
+| Mean queue waiting time | 0.286 ms | 4,755.221 ms |
+| P95 queue waiting time | 0.475 ms | 9,010.488 ms |
+| Maximum queue waiting time | 0.491 ms | 9,511.218 ms |
+| Mean handler processing time | 0.002 ms | 500.475 ms |
+| P95 end-to-end event latency | 0.478 ms | 9,511.193 ms |
+| Maximum end-to-end event latency | 0.494 ms | 10,011.820 ms |
+| Mean observed throughput | 49,554.698 events/s | 1.998 events/s |
 | Maximum observed pending depth | 20 | 20 |
 
 The baseline handler performs essentially no work, so its throughput value is not a production
@@ -221,9 +232,10 @@ claim that the broader recovery path is absent.
 | Shutdown scenario | Close with all ten messages still queued |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Git commit | `173d2072af71d359579caa46210171add54794f0` |
 | Working tree | Clean at experiment start (`working_tree_dirty=false`) |
-| Generated | November 16, 2026 at 19:33 UTC |
+| Execution | Serial; no other risk campaign running |
+| Generated | November 17, 2026 at 01:20 UTC |
 
 Raw per-event evidence is available in [E2_raw.csv](results/E2_raw.csv), and configuration, environment
 and aggregate results are retained in [E2_summary.json](results/E2_summary.json).
@@ -240,7 +252,7 @@ and aggregate results are retained in [E2_summary.json](results/E2_summary.json)
 | Events restored in a fresh bus | 0 | 0 |
 | Final original-bus queue depth | 0 | 0 |
 | Fresh-bus initial queue depth | Not applicable | 0 |
-| Close time | 0.0070 ms | 0.0282 ms |
+| Close time | 0.0086 ms | 0.0410 ms |
 
 The normal scenario accounts for all ten messages as successful dispatches. The queue was empty before
 close, so closing it produced no failures. In the controlled-shutdown scenario, none of the ten handlers
@@ -349,9 +361,10 @@ normal test-suite execution.
 | AI provider | Controlled fake; no network or external API |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Git commit | `173d2072af71d359579caa46210171add54794f0` |
 | Working tree | Clean at experiment start (`working_tree_dirty=false`) |
-| Generated | November 16, 2026 at 19:37 UTC |
+| Execution | Serial; no other risk campaign running |
+| Generated | November 17, 2026 at 01:24 UTC |
 
 Raw trial evidence is available in [L1_raw.csv](results/L1_raw.csv), and aggregate statistics and
 provenance are retained in [L1_summary.json](results/L1_summary.json).
@@ -368,19 +381,19 @@ prepare -> plan start -> plan finish -> validate/project -> narrate start
 
 | Delay per AI call | Expected combined delay | Planning median | Narration median | Response min | Response median | Response max |
 |---:|---:|---:|---:|---:|---:|---:|
-| 0 s | 0 s | 0.001 ms | 0.001 ms | 0.050 ms | 0.093 ms | 0.195 ms |
-| 0.5 s | 1 s | 500.439 ms | 500.644 ms | 1,000.982 ms | 1,001.232 ms | 1,001.561 ms |
-| 2 s | 4 s | 2,000.551 ms | 2,000.457 ms | 4,000.721 ms | 4,001.180 ms | 4,001.831 ms |
-| 4 s | 8 s | 4,000.521 ms | 4,000.540 ms | 8,001.039 ms | 8,001.268 ms | 8,001.477 ms |
-| 6 s | 12 s | 6,000.523 ms | 6,000.431 ms | 12,000.905 ms | 12,001.290 ms | 12,001.557 ms |
+| 0 s | 0 s | 0.001 ms | 0.001 ms | 0.084 ms | 0.135 ms | 0.251 ms |
+| 0.5 s | 1 s | 500.445 ms | 500.427 ms | 1,000.893 ms | 1,001.317 ms | 1,001.509 ms |
+| 2 s | 4 s | 2,000.535 ms | 2,000.367 ms | 4,001.112 ms | 4,001.457 ms | 4,002.735 ms |
+| 4 s | 8 s | 4,000.399 ms | 4,000.522 ms | 8,000.882 ms | 8,001.451 ms | 8,002.860 ms |
+| 6 s | 12 s | 6,000.524 ms | 6,000.453 ms | 12,001.037 ms | 12,001.481 ms | 12,001.644 ms |
 
 | Delay per call | Median submission-to-commit | Median non-AI overhead | Median response attributed to AI |
 |---:|---:|---:|---:|
-| 0 s | 0.080 ms | 0.091 ms | 1.943% |
-| 0.5 s | 1,001.182 ms | 0.234 ms | 99.975% |
-| 2 s | 4,001.119 ms | 0.261 ms | 99.994% |
-| 4 s | 8,001.214 ms | 0.305 ms | 99.996% |
-| 6 s | 12,001.222 ms | 0.318 ms | 99.997% |
+| 0 s | 0.109 ms | 0.133 ms | 1.704% |
+| 0.5 s | 1,001.239 ms | 0.407 ms | 99.960% |
+| 2 s | 4,001.380 ms | 0.472 ms | 99.987% |
+| 4 s | 8,001.324 ms | 0.453 ms | 99.994% |
+| 6 s | 12,001.352 ms | 0.468 ms | 99.996% |
 
 The results closely match the sum of the two controlled delays. At 0.5 seconds per call, the median
 response was approximately one second. At six seconds per call, it was approximately twelve seconds.
@@ -480,9 +493,10 @@ repeating provider calls.
 | AI | Zero-delay deterministic double reused from L1 |
 | Python | CPython 3.12.4 |
 | Platform | Windows 11 |
-| Git commit | `69a72215d012fae592e8f2edb0f2261aa351641b` |
+| Git commit | `173d2072af71d359579caa46210171add54794f0` |
 | Working tree | Clean at experiment start (`working_tree_dirty=false`) |
-| Generated | November 16, 2026 at 19:33 UTC |
+| Execution | Serial; no other risk campaign running |
+| Generated | November 17, 2026 at 01:25 UTC |
 
 The L2 summary records SHA-256 digests for both the L2 script and the reused L1 fixture module. Raw
 trial evidence is available in [L2_raw.csv](results/L2_raw.csv), and aggregate statistics and provenance
@@ -492,14 +506,14 @@ are retained in [L2_summary.json](results/L2_summary.json).
 
 | Scenario | Reporting median | Response minimum | Response median | Response maximum | Median increase vs. normal |
 |---|---:|---:|---:|---:|---:|
-| A: no delay, success | 0.001 ms | 0.040 ms | 0.042 ms | 0.144 ms | 0 ms |
-| B: 0.5 s delay, success | 500.517 ms | 500.432 ms | 500.649 ms | 500.902 ms | 500.608 ms |
-| C: 2 s delay, success | 2,000.437 ms | 2,000.397 ms | 2,000.750 ms | 2,000.974 ms | 2,000.708 ms |
-| D: immediate failure | 0.002 ms | 0.119 ms | 0.139 ms | 0.332 ms | 0.098 ms |
+| A: no delay, success | 0.001 ms | 0.067 ms | 0.096 ms | 0.188 ms | 0 ms |
+| B: 0.5 s delay, success | 500.394 ms | 500.471 ms | 500.782 ms | 553.354 ms | 500.686 ms |
+| C: 2 s delay, success | 2,000.522 ms | 2,000.589 ms | 2,000.941 ms | 2,002.125 ms | 2,000.845 ms |
+| D: immediate failure | 0.004 ms | 0.274 ms | 0.452 ms | 0.985 ms | 0.357 ms |
 
 The controlled reporting delay was added almost one-for-one to the gateway's response time. In scenario
-B, a 0.5-second reporting delay increased median response time by approximately 500.6 ms. In scenario
-C, a 2-second delay increased it by approximately 2,000.7 ms. Gameplay had already reached the
+B, a 0.5-second reporting delay increased median response time by approximately 500.7 ms. In scenario
+C, a 2-second delay increased it by approximately 2,000.8 ms. Gameplay had already reached the
 synthetic commit point, but `submit()` still waited for reporting to return.
 
 ### Reliability results and comparison
@@ -550,16 +564,187 @@ temporary projection staleness until catch-up runs and the lack of a recovery-ti
 reporting outside the response-critical path and exposing projection freshness would further reduce
 those effects.
 
+## P1 — Cross-Architecture Private-Data Isolation
+
+### Short description
+
+P1 tests whether private information crosses an interface where it is not allowed. It executes a
+complete turn through each production gateway with a deterministic recording provider. The campaign
+fixture contains a tagged director-only fact that should be available to planning but not narration or
+player-facing outputs. A separate tagged credential is supplied through the in-memory credential vault
+and must not appear in provider messages, receipts, queries or Event-Based traces.
+
+The risk hypothesis is:
+
+> A broad planning context or queued workflow could accidentally carry director-only story data or a
+> provider credential into narration, public results, diagnostic traces or queries.
+
+The experiment records boolean exposure evidence only. It deliberately omits the canary values and
+provider message contents from the CSV and summary artifacts.
+
+### Test procedure
+
+1. Build an isolated Layered or Event-Based application using the production gateway, domain services
+   and SQLite repositories. The Event-Based worker is disabled so dispatch is deterministic.
+2. Register and authenticate an account, store and activate a provider card with a tagged credential,
+   publish the Thornmere fixture and start a session as Rowan.
+3. Submit the same no-effect turn through each architecture. The recording provider returns a valid
+   empty plan and safe narration.
+4. Verify that the director-only fixture canary is present in the planner request. This positive control
+   proves the canary actually reached the intended private planning boundary.
+5. Verify that the private canary is absent from the narrator request, operation receipt/result, resumed
+   player view, campaign report, provider-card query, Event-Based trace and subscriber-failure metadata.
+6. Verify that the credential canary is absent from all provider messages and public outputs.
+7. Repeat three times per architecture, producing six trials and twelve provider calls.
+
+### Test configuration and provenance
+
+| Property | Value |
+|---|---|
+| Experiment ID | P1 |
+| Architectures | Layered and Event-Based production gateways |
+| Repetitions | 3 per architecture; 6 total |
+| Provider | Deterministic recording double; exact request messages inspected in memory |
+| Private positive control | Director-only fixture record reaches planning |
+| Negative boundaries | Narration, receipts/results, queries, traces and failure metadata |
+| Credential check | Tagged in-memory credential absent from provider messages and public outputs |
+| Persistence | Production SQLite repositories in isolated temporary directories |
+| Python | CPython 3.12.4 |
+| Platform | Windows 11 |
+| Git commit | `173d2072af71d359579caa46210171add54794f0` |
+| Working tree | Clean at experiment start (`working_tree_dirty=false`) |
+| Execution | Serial; no other risk campaign running |
+| Generated | November 17, 2026 at 01:25 UTC |
+
+Raw boolean evidence is available in [P1_raw.csv](results/P1_raw.csv), and aggregate results and source
+digests are retained in [P1_summary.json](results/P1_summary.json).
+
+### Results and comparison
+
+| Architecture | Trials passed | Planner received private canary | Narrator exposures | Public-output exposures | Trace/failure exposures | Credential exposures |
+|---|---:|---:|---:|---:|---:|---:|
+| Layered | 3 / 3 | 3 / 3 | 0 | 0 | 0 | 0 |
+| Event-Based | 3 / 3 | 3 / 3 | 0 | 0 | 0 | 0 |
+
+All six trials passed. The private canary reached the planner in every trial, so the absence from later
+boundaries is meaningful rather than the result of a missing test input. Neither architecture sent the
+director-only canary to narration or exposed it through the inspected player-facing and diagnostic
+boundaries. The credential canary appeared in none of the inspected provider message content or public
+outputs.
+
+### Limitations and risk assessment
+
+- P1 checks one known director-only record and one credential canary, not every private field.
+- It uses deterministic responses and does not send a network request to an external provider.
+- In-memory inspection covers the current provider-message model, results, selected queries and bus
+  trace; it is not a general information-flow proof for future code.
+- Log aggregation, crash dumps, third-party SDK telemetry and the Streamlit server process are outside
+  the experiment.
+- Three repetitions establish deterministic boundary behavior, not a probabilistic leak rate.
+
+P1 did not reproduce the proposed private-data leak in either architecture. This is positive evidence
+for the current typed planning/narration split, player projections, credential capture and metadata-only
+Event-Based tracing. Privacy remains a regression risk: new fields, diagnostic logging or provider
+adapters must preserve these negative assertions.
+
+## R1 — Commit-Then-Interrupt Restart Recovery
+
+### Short description
+
+R1 tests the durable boundary that E2 and L2 intentionally did not cover. It performs a real turn with
+the production SQLite repository, interrupts processing immediately after the atomic commit creates a
+pending committed notice and before either result or reporting consumer acknowledges it, then rebuilds
+the application from the same database.
+
+The risk hypothesis is:
+
+> An interruption after gameplay commits but before notification consumers acknowledge could lose the
+> accepted result, repeat local effects, repeat paid provider calls or leave reporting permanently stale.
+
+### Test procedure
+
+1. Seed an isolated production application and submit a deterministic two-call turn.
+2. In Layered, inject a controlled exception into the first result acknowledgement. This occurs after
+   the SQLite commit and before result or reporting acknowledgement; the volatile gateway receipt is
+   therefore `failed` even though durable gameplay has committed.
+3. In Event-Based, dispatch through the persistence handler until the database contains the committed
+   notice, then close before dispatching the queued `turn.committed` event. The volatile receipt remains
+   `running` at interruption.
+4. Before restart, verify one pending notice, zero consumer acknowledgements and two provider calls.
+5. Rebuild the same architecture against the same database. Layered performs startup result/report
+   catch-up; Event-Based republishes the committed identifier and deterministically dispatches it.
+6. Measure rebuild-through-catch-up time and verify zero pending notices, two consumer acknowledgements,
+   session revision one, one accepted turn, a report containing one accepted turn and no additional
+   provider calls.
+7. Repeat three times per architecture.
+
+### Test configuration and provenance
+
+| Property | Value |
+|---|---|
+| Experiment ID | R1 |
+| Architectures | Layered and Event-Based production gateways |
+| Repetitions | 3 per architecture; 6 total |
+| Interruption boundary | After SQLite commit; before result/report acknowledgements |
+| Provider | Deterministic recording double; two calls before interruption |
+| Persistence | Production SQLite repository and pending-notification/consumer-receipt tables |
+| Recovery measure | Application rebuild through completed catch-up |
+| Python | CPython 3.12.4 |
+| Platform | Windows 11 |
+| Git commit | `173d2072af71d359579caa46210171add54794f0` |
+| Working tree | Clean at experiment start (`working_tree_dirty=false`) |
+| Execution | Serial; no other risk campaign running |
+| Generated | November 17, 2026 at 01:25 UTC |
+
+Raw per-trial evidence is available in [R1_raw.csv](results/R1_raw.csv), and aggregate results and source
+digests are retained in [R1_summary.json](results/R1_summary.json).
+
+### Results and comparison
+
+| Measurement | Layered | Event-Based |
+|---|---:|---:|
+| Trials passed | 3 / 3 | 3 / 3 |
+| Volatile status at interruption | `failed` | `running` |
+| Pending notices before → after restart | 1 → 0 per trial | 1 → 0 per trial |
+| Consumer acknowledgements before → after | 0 → 2 per trial | 0 → 2 per trial |
+| Accepted turns after restart | 1 per trial | 1 per trial |
+| Session revision after restart | 1 per trial | 1 per trial |
+| Provider calls before → after restart | 2 → 2 per trial | 2 → 2 per trial |
+| Recovery time minimum | 24.627 ms | 22.362 ms |
+| Recovery time median | 24.657 ms | 23.803 ms |
+| Recovery time maximum | 25.533 ms | 28.519 ms |
+
+All six trials recovered the durable commit exactly once from the experiment's observable perspective:
+one accepted history entry, one state revision, a one-turn report and no provider replay. Both consumers
+acknowledged the same durable notice after restart. The different interruption statuses are important:
+an in-memory `failed` or `running` status is not authoritative once the commit boundary may have been
+crossed. Durable operation/turn state must be consulted before retrying.
+
+### Limitations and risk assessment
+
+- The interruption is a deterministic fault injection, not an operating-system process kill or power
+  failure.
+- Recovery uses local SQLite without concurrent writers, filesystem failure or database corruption.
+- Three repetitions provide a correctness demonstration and a local recovery-time observation, not a
+  production recovery-time distribution or service objective.
+- The experiment interrupts before both acknowledgements; it does not inject every partial-consumer or
+  partial-reporting-write combination.
+- R1 verifies the persisted turn, acknowledgements, history, report count and provider-call count. It
+  does not prove all future effects are idempotent.
+
+R1 demonstrates that the current committed-notice design closes the principal post-commit recovery gap
+identified by E2 and L2: accepted state and notices survive restart, both consumers catch up, and paid AI
+work is not replayed. Residual risks remain around partial writes outside the transaction, concurrent
+recovery, corrupted storage and operational observability.
+
 ## Cross-Experiment Risk Analysis and Final Assessment
 
 ### Overall summary
 
-The four experiments evaluate different failure and delay mechanisms in the two architectural
-implementations. E1 and E2 exercise the real Event-Based queue connector. L1 and L2 exercise the real
-Layered gateway and application coordinator with deterministic collaborators that isolate latency and
-reporting behavior.
-Together, they show that both designs preserve some intended structural properties while exposing
-different operational risks.
+The six experiments evaluate failure, delay, privacy and recovery mechanisms in the two architectural
+implementations. E1 and E2 isolate the Event-Based queue connector. L1 and L2 isolate Layered latency
+and reporting behavior. P1 and R1 run matched completed workflows through both production gateways and
+SQLite repositories. Together, they show both shared safeguards and different operational risks.
 
 | Experiment | Architecture and concern | Principal observed evidence | Risk demonstrated |
 |---|---|---|---|
@@ -567,8 +752,10 @@ different operational risks.
 | E2 | Event-Based: controlled shutdown | 10 queued events produced 0 dispatches, 10 shutdown discards and 0 restorations in a fresh bus | Pending work is nondurable under the current queue lifecycle |
 | L1 | Layered: two synchronous AI stages | A 6 s delay in each AI call produced a 12.001 s median `submit()` response | Sequential external-service latency is passed directly to the caller |
 | L2 | Layered: synchronous reporting | A 2 s reporting delay added 2.001 s to median response; 10/10 reporting failures preserved one commit and returned `reporting_pending=True` | Reporting adds critical-path latency; immediate failure is isolated, while catch-up is covered outside L2 |
+| P1 | Both: private boundary isolation | 6/6 trials passed; planner positive controls succeeded with zero narrator, public, trace or credential exposures | Current typed projections and metadata-only traces prevented the tested leaks |
+| R1 | Both: interrupt after commit | 6/6 trials recovered one turn and two acknowledgements with provider calls unchanged at two | Durable committed notices recover without replaying paid AI work |
 
-All four experiment harnesses passed their correctness assertions. That result means the measurements
+All six experiment harnesses passed their correctness assertions. That result means the measurements
 are internally accounted for: messages and trials were unique, expected calls occurred, ordering was
 checked and no result was fabricated. Passing the harnesses does not mean the measured architectural
 behavior is risk-free. In several cases the risk is precisely the behavior that the passing test
@@ -602,6 +789,11 @@ quantity of pending work that would be exposed to E2's lifecycle behavior. The c
 queue scheduling, shutdown admission and message durability higher priorities than either experiment
 would suggest in isolation.
 
+R1 establishes the boundary on that conclusion. Once a turn has atomically committed and created its
+durable notice, Event-Based restart recovery republishes the identifier, both consumers acknowledge it,
+the accepted effect is not duplicated and the provider is not called again. E2's loss applies to queued
+pre-commit messages, not committed notices.
+
 The risks are specific to the project's current connector choices, not to Event-Based architecture in
 general. Event-driven systems can use multiple workers, partitioning, bounded queues, backpressure,
 durable brokers, acknowledgements, transactional outboxes and redelivery. Adding those mechanisms would
@@ -626,11 +818,19 @@ reporting failure from being mislabeled as gameplay failure. All ten injected re
 completed gameplay results, set `reporting_pending=True`, preserved the synthetic state record and did
 not repeat the commit. This reduces immediate failure coupling between gameplay and analytics.
 
-The experiment evidence supports immediate isolation but does not by itself establish recovery time.
-Outside L2, the current implementation includes SQLite-backed pending notices and
-`ReportingService.catch_up()`, and the Layered and Event-Based gameplay tests exercise restart recovery
-without repeating provider calls. This reduces the residual reliability risk to temporary reporting lag
-and recovery observability rather than a missing catch-up mechanism.
+R1 complements L2 with direct recovery evidence. Layered startup catch-up cleared both outstanding
+consumer acknowledgements in all three trials, retained one accepted turn and made no additional
+provider call. The local median recovery observation was 24.657 ms. This reduces the residual reliability
+risk to temporary reporting lag, partial-write cases outside R1 and recovery observability rather than a
+missing catch-up mechanism.
+
+### Shared privacy and recovery findings
+
+P1 found no private-canary or credential exposure in either architecture across the inspected narration,
+public result/query and diagnostic boundaries. The positive planning control succeeded in every trial,
+so the negative results exercise a real private value. R1 likewise showed the same durable outcome in
+both styles despite different volatile statuses at interruption. These results support shared domain and
+persistence safeguards; they do not erase the architectures' distinct latency and queue-lifecycle risks.
 
 ### Comparative risk view
 
@@ -639,17 +839,18 @@ and recovery observability rather than a missing catch-up mechanism.
 | Request behavior | Publication can return before handling, but work waits on one worker | Caller remains inside the complete ordered workflow |
 | Slow external work | Can block all later events on the worker and grow the queue | Directly increases the initiating caller's response time |
 | Failure visibility | Shutdown callback identifies discarded queued work | Gateway returns a completed result with reporting marked pending |
-| Durability demonstrated | E2 demonstrates none for queued synthetic pre-commit messages; committed notices are durable outside E2 | L1/L2 use fake commits; SQLite durability is covered by separate gameplay tests |
-| Recovery demonstrated | Not by E2; committed-notice restart recovery is implemented and tested elsewhere | Not by L2; `ReportingService.catch_up()` is implemented and tested elsewhere |
-| Current strength | Indirect publication and subscriber failure isolation | Explicit sequencing and post-commit reporting-failure isolation |
+| Durability demonstrated | E2: none for queued pre-commit messages; R1: committed state and notices survive restart | R1: committed state and notices survive restart |
+| Recovery demonstrated | R1: 3/3 recovered with two acknowledgements and no provider replay | R1: 3/3 recovered with two acknowledgements and no provider replay |
+| Private isolation demonstrated | P1: 3/3 with zero tested exposures | P1: 3/3 with zero tested exposures |
+| Current strength | Indirect publication, subscriber isolation and durable committed-notice replay | Explicit sequencing, post-commit failure isolation and synchronous startup catch-up |
 | Principal current risk | Backlog plus nondurable queued pre-commit events | Accumulated synchronous latency plus temporary reporting lag after failure |
 
-The experiments do not establish that one architecture is universally superior. They used different
-controlled scenarios and did not run functionally equivalent completed gameplay implementations under
-the same workload. They do show the practical tradeoff anticipated by the project proposal: the Layered
-style makes ordering and failure boundaries explicit but exposes callers to sequential latency, while the
-Event-Based style can separate submission from processing but requires deliberate queue capacity,
-pre-commit durability, recovery and concurrency policies.
+The experiments do not establish that one architecture is universally superior. P1 and R1 use matched
+completed workflows, but E1/L1 and E2/L2 intentionally isolate different mechanisms rather than provide
+a matched throughput benchmark. The evidence still shows the anticipated tradeoff: Layered makes
+ordering and failure boundaries explicit but exposes callers to sequential latency, while Event-Based
+can separate submission from processing but requires deliberate queue capacity, pre-commit durability
+and concurrency policies.
 
 ### Risk priority and recommended actions
 
@@ -671,9 +872,9 @@ the project inside the experiments.
 5. **Bound Layered external-call latency.** Apply explicit provider deadlines, cancellation and visible
    operation status. If long-running turns become asynchronous, retain the Layered workflow's validation,
    commit ordering and explicit retry rules.
-6. **Expand recovery fault injection.** The current gameplay tests cover restart catch-up, deduplication
-   and zero repeated provider calls. Add interruption points during handler execution and partial
-   reporting writes, and measure recovery time and projection staleness.
+6. **Expand recovery fault injection beyond R1.** R1 covers interruption after commit and before both
+   acknowledgements. Add partial-consumer completion, partial reporting writes, concurrent startup and
+   storage-failure cases, and define a recovery-time objective.
 7. **Run a matched end-to-end comparison.** Use the same campaign, commands, scripted provider responses
    and persistence semantics through both completed gateways. This is required before drawing
    end-to-end performance or architecture-selection conclusions.
@@ -684,11 +885,12 @@ The experiments reveal risks rather than defects in the architectural styles the
 significant Event-Based exposure is the combination of a single unbounded worker queue and no durability
 for queued pre-commit messages: slow work can accumulate, and that pending work is discarded during the
 tested controlled shutdown. Durable committed-notice recovery exists, but it begins after the boundary
-tested by E2.
+tested by E2; R1 confirms that recovery succeeds after that boundary.
 The most significant Layered exposure is cumulative synchronous latency: planning, narration and
 reporting all delay the caller in their defined order. The Layered coordinator does, however, already
 contain a useful reliability boundary that prevents reporting failure from reversing or falsely failing
-an accepted synthetic turn.
+an accepted synthetic turn. P1 and R1 add shared positive evidence: the inspected privacy boundaries did
+not leak their canaries, and committed turns recovered without provider replay in both architectures.
 
 At the current MVP stage, the evidence favors strengthening both implementations rather than declaring
 a winner. The Event-Based version needs an explicit capacity policy and a documented durability boundary

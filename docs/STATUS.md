@@ -33,7 +33,7 @@ and Streamlit pages; they differ in workflow coordination and connectors.
   commit-before-acknowledgement interruption/restart recovery in both architectures.
 - Provider tests verify all three supported request/response protocols against a local HTTP server.
 - Streamlit AppTest renders both entrypoints and exercises authentication and campaign creation.
-- Final verification: 94 tests pass with one Windows symlink-privilege skip; Ruff, formatting,
+- Final verification: 98 tests pass with one Windows symlink-privilege skip; Ruff, formatting,
   compilation, structural, public-tree, wiring, isolated-build, and Streamlit checks pass.
 - No live external-provider request is made by the automated suite.
 

@@ -1,0 +1,7 @@
+experiment_id,architecture,repetition,provider_calls,planner_contains_private_canary,narrator_contains_private_canary,public_outputs_contain_private_canary,trace_contains_private_canary,provider_messages_contain_credential_canary,public_outputs_contain_credential_canary,isolation_passed
+P1,Layered,1,2,True,False,False,False,False,False,True
+P1,Layered,2,2,True,False,False,False,False,False,True
+P1,Layered,3,2,True,False,False,False,False,False,True
+P1,Event-Based,1,2,True,False,False,False,False,False,True
+P1,Event-Based,2,2,True,False,False,False,False,False,True
+P1,Event-Based,3,2,True,False,False,False,False,False,True
