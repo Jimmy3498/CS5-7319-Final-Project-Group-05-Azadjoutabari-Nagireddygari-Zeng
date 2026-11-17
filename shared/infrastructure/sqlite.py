@@ -779,6 +779,41 @@ class SQLiteStore:
             )
             db.commit()
 
+    def recover_interrupted_turns(self) -> None:
+        """Run once before serving requests, with one host per demo database.
+
+        A prior host's running attempts cannot resume. Preserve saved gameplay;
+        the remote provider may have processed a request, so never replay it here.
+        """
+        with closing(self._connect()) as db:
+            db.execute("BEGIN IMMEDIATE")
+            operations = db.execute(
+                """
+                SELECT r.operation_id
+                FROM operation_receipts AS r
+                JOIN turn_attempts AS t ON t.operation_id = r.operation_id
+                WHERE r.kind = 'turn' AND r.status = 'running' AND t.state = 'running'
+                """
+            ).fetchall()
+            ids = [(row["operation_id"],) for row in operations]
+            db.executemany(
+                """
+                UPDATE turn_attempts
+                SET state = 'failed', provider_outcome_uncertain = 1
+                WHERE operation_id = ? AND state = 'running'
+                """,
+                ids,
+            )
+            db.executemany(
+                """
+                UPDATE operation_receipts
+                SET status = 'failed', public_error_code = ?
+                WHERE operation_id = ? AND status = 'running'
+                """,
+                [(ErrorCode.PROVIDER_UNCERTAIN.value, operation_id) for (operation_id,) in ids],
+            )
+            db.commit()
+
     def pending_notifications(self) -> tuple[CommittedTurnNotice, ...]:
         with closing(self._connect()) as db:
             rows = db.execute(
@@ -885,10 +920,10 @@ class SQLiteStore:
                 db.execute(
                     """
                     INSERT INTO turn_attempts (
-                        id, operation_id, session_id, prior_attempt_id,
+                        id, operation_id, session_id, prior_attempt_id, base_version_id,
                         expected_revision, state, player_input,
                         provider_outcome_uncertain, created_at
-                    ) VALUES (?, ?, ?, ?, ?, 'running', ?, 0,
+                    ) VALUES (?, ?, ?, ?, ?, ?, 'running', ?, 0,
                         strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
                     """,
                     (
@@ -896,6 +931,7 @@ class SQLiteStore:
                         new_operation_id,
                         submit.session_id,
                         prior["attempt_id"],
+                        state.base_version_id,
                         submit.expected_revision,
                         submit.player_input,
                     ),
@@ -1075,12 +1111,8 @@ class SQLiteStore:
                     )
 
             selected_version = version["id"] if version is not None else None
-            version_clause = " AND p.base_version_id = ?" if version_id is not None else ""
-            parameters: tuple[object, ...] = (
-                (campaign_id, selected_version) if version_id is not None else (campaign_id,)
-            )
             summary = db.execute(
-                f"""
+                """
                 SELECT COUNT(DISTINCT p.id) AS started,
                        COALESCE(SUM(CASE WHEN t.state = 'completed' THEN 1 ELSE 0 END), 0)
                          AS accepted,
@@ -1088,14 +1120,21 @@ class SQLiteStore:
                          AS rejected,
                        COALESCE(SUM(CASE WHEN t.state = 'failed' THEN 1 ELSE 0 END), 0)
                          AS failed,
-                       MAX(COALESCE(a.created_at, p.updated_at)) AS last_activity
+                       MAX(COALESCE(a.created_at, t.created_at,
+                           (SELECT MIN(m.entered_at) FROM session_version_memberships m
+                            WHERE m.session_id = p.id AND m.version_id = :version_id),
+                           p.created_at)) AS last_activity
                 FROM playthroughs AS p
                 LEFT JOIN turn_attempts AS t ON t.session_id = p.id
-                LEFT JOIN operation_receipts AS r ON r.operation_id = t.operation_id
-                LEFT JOIN accepted_turns AS a ON a.operation_id = r.operation_id
-                WHERE p.campaign_id = ?{version_clause}
+                  AND (:version_id IS NULL OR t.base_version_id = :version_id)
+                LEFT JOIN accepted_turns AS a ON a.operation_id = t.operation_id
+                WHERE p.campaign_id = :campaign_id
+                  AND (:version_id IS NULL OR EXISTS (
+                    SELECT 1 FROM session_version_memberships m
+                    WHERE m.session_id = p.id AND m.version_id = :version_id
+                  ))
                 """,
-                parameters,
+                {"campaign_id": campaign_id, "version_id": version_id},
             ).fetchone()
 
             projection = db.execute(
@@ -1105,8 +1144,9 @@ class SQLiteStore:
                 JOIN pending_notifications AS n ON n.event_id = r.event_id
                 JOIN playthroughs AS p ON p.id = n.session_id
                 WHERE r.consumer_id = 'reporting' AND p.campaign_id = ?
+                  AND (? IS NULL OR json_extract(n.identifiers_json, '$.base_version_id') = ?)
                 """,
-                (campaign_id,),
+                (campaign_id, version_id, version_id),
             ).fetchone()[0]
 
             milestones: list[MilestoneCount] = []
@@ -1131,10 +1171,11 @@ class SQLiteStore:
                     ).fetchone()
                     eligible = db.execute(
                         """
-                        SELECT COUNT(DISTINCT id) AS playthroughs,
-                               COUNT(DISTINCT owner_id) AS accounts
-                        FROM playthroughs
-                        WHERE campaign_id = ? AND base_version_id = ?
+                        SELECT COUNT(DISTINCT p.id) AS playthroughs,
+                               COUNT(DISTINCT p.owner_id) AS accounts
+                        FROM playthroughs p
+                        JOIN session_version_memberships m ON m.session_id = p.id
+                        WHERE p.campaign_id = ? AND m.version_id = ?
                         """,
                         (campaign_id, selected_version),
                     ).fetchone()
@@ -1513,14 +1554,14 @@ class SQLiteStore:
             db.commit()
 
     def initialize(self) -> None:
-        """Create schema v2 or add the editor columns to an existing v1 database."""
+        """Preserve existing data while adding editor fields and attempt-version attribution."""
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(sqlite3.connect(self.database_path)) as db:
             db.execute("PRAGMA foreign_keys = ON")
             version = db.execute("PRAGMA user_version").fetchone()[0]
-            if version == 2:
+            if version == 3:
                 return
-            if version not in (0, 1):
+            if version not in (0, 1, 2):
                 raise ApplicationError(ErrorCode.STORAGE, "Unsupported database schema version")
             if version == 0:
                 schema = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
@@ -1528,27 +1569,50 @@ class SQLiteStore:
                     BEGIN IMMEDIATE;
                     {schema}
                     INSERT INTO schema_versions (version, applied_at)
-                    VALUES (2, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
-                    PRAGMA user_version = 2;
+                    VALUES (3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+                    PRAGMA user_version = 3;
                     COMMIT;
                 """)
                 return
 
             db.execute("BEGIN IMMEDIATE")
-            columns = {row[1] for row in db.execute("PRAGMA table_info(editor_proposals)")}
-            additions = {
-                "summary": "TEXT NOT NULL DEFAULT ''",
-                "changes_json": "TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(changes_json))",
-                "resolved_at": "TEXT",
-            }
-            for name, definition in additions.items():
-                if name not in columns:
-                    db.execute(f"ALTER TABLE editor_proposals ADD COLUMN {name} {definition}")
+            if version == 1:
+                columns = {row[1] for row in db.execute("PRAGMA table_info(editor_proposals)")}
+                additions = {
+                    "summary": "TEXT NOT NULL DEFAULT ''",
+                    "changes_json": "TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(changes_json))",
+                    "resolved_at": "TEXT",
+                }
+                for name, definition in additions.items():
+                    if name not in columns:
+                        db.execute(f"ALTER TABLE editor_proposals ADD COLUMN {name} {definition}")
+                db.execute(
+                    "INSERT INTO schema_versions (version, applied_at) "
+                    "VALUES (2, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+                )
+            columns = {row[1] for row in db.execute("PRAGMA table_info(turn_attempts)")}
+            if "base_version_id" not in columns:
+                db.execute(
+                    "ALTER TABLE turn_attempts ADD COLUMN base_version_id "
+                    "TEXT REFERENCES published_versions(id)"
+                )
+            # Completed receipts record the exact version. Single-version sessions are
+            # also unambiguous; leave other old attempts unassigned rather than guess.
+            db.execute("""
+                UPDATE turn_attempts SET base_version_id = COALESCE(
+                    (SELECT json_extract(r.result_json, '$.notice.base_version_id')
+                     FROM operation_receipts r WHERE r.operation_id = turn_attempts.operation_id
+                       AND r.status = 'completed'),
+                    (SELECT MIN(m.version_id) FROM session_version_memberships m
+                     WHERE m.session_id = turn_attempts.session_id HAVING COUNT(*) = 1)
+                )
+                WHERE base_version_id IS NULL
+            """)
             db.execute(
                 "INSERT INTO schema_versions (version, applied_at) "
-                "VALUES (2, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+                "VALUES (3, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
             )
-            db.execute("PRAGMA user_version = 2")
+            db.execute("PRAGMA user_version = 3")
             db.commit()
 
     def admit_turn(
@@ -1637,16 +1701,17 @@ class SQLiteStore:
             db.execute(
                 """
                 INSERT INTO turn_attempts (
-                    id, operation_id, session_id, expected_revision,
+                    id, operation_id, session_id, base_version_id, expected_revision,
                     state, player_input, provider_outcome_uncertain, created_at
                 )
-                VALUES (?, ?, ?, ?, 'running', ?, 0,
+                VALUES (?, ?, ?, ?, ?, 'running', ?, 0,
                     strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
                 """,
                 (
                     str(uuid4()),
                     operation_id,
                     session_id,
+                    state.base_version_id,
                     expected_revision,
                     player_input,
                 ),

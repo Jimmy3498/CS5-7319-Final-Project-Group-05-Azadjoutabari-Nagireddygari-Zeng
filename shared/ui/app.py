@@ -39,6 +39,8 @@ def run(architecture: str, build: Callable[[], ApplicationGateway]) -> None:
 
     st.sidebar.title("Story Studio")
     st.sidebar.caption(f"{architecture} architecture")
+    if "ui.next_page" in st.session_state:
+        st.session_state["page"] = st.session_state.pop("ui.next_page")
     page = st.sidebar.radio(
         "Workspace",
         PAGES,

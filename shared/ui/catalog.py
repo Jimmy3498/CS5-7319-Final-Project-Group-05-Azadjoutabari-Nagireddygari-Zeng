@@ -50,7 +50,7 @@ def catalog(ui: UIContext) -> None:
             if isinstance(result, PlayerView):
                 st.session_state["ui.play.view"] = result
                 st.session_state["ui.play.session_id"] = result.session_id
-                st.session_state["page"] = "My Sessions / Play"
+                st.session_state["ui.next_page"] = "My Sessions / Play"
                 st.rerun()
             if signed_in is None:
                 st.caption("Sign in to start a playthrough.")

@@ -26,7 +26,11 @@ class SchemaUpgradeTests(unittest.TestCase):
         self.store = SQLiteStore(Path(temporary.name) / "demo.sqlite3")
 
     def seed_v1(self, current_columns=False):
-        schema = SCHEMA.read_text()
+        schema = "\n".join(
+            line
+            for line in SCHEMA.read_text().splitlines()
+            if "NULL only for unattributable legacy attempts" not in line
+        )
         if not current_columns:
             schema, count = re.subn(
                 r"CREATE TABLE editor_proposals \([\s\S]*?\n\);",
@@ -73,13 +77,13 @@ class SchemaUpgradeTests(unittest.TestCase):
             db.commit()
         return account, draft
 
-    def test_fresh_database_is_v2_and_repeat_initialization_preserves_data(self):
+    def test_fresh_database_is_v3_and_repeat_initialization_preserves_data(self):
         self.store.initialize()
         account = self.store.create_account("Alice", "test-hash")
         self.store.initialize()
         self.assertEqual(self.store.credential_record("Alice")[0], account)
         with closing(self.store._connect()) as db:
-            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 2)
+            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 3)
             self.assertEqual(db.execute("SELECT COUNT(*) FROM schema_versions").fetchone()[0], 1)
 
     def test_v1_upgrade_preserves_accounts_drafts_and_proposals(self):
@@ -97,7 +101,7 @@ class SchemaUpgradeTests(unittest.TestCase):
             self.assertIsNone(row["resolved_at"])
             self.assertEqual(
                 [r[0] for r in db.execute("SELECT version FROM schema_versions ORDER BY version")],
-                [1, 2],
+                [1, 2, 3],
             )
 
     def test_v1_with_new_columns_keeps_existing_summary(self):
