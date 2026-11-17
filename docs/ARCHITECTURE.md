@@ -115,10 +115,11 @@ mitigation and remaining limitation. Evaluate both architectures using comparabl
 | Reporting delay/failure | L2: post-commit reporting delay and exception | Complete: response delay, preserved result and pending flag |
 | Private data crossing an interface | P1: tagged private and credential canaries through both gateways | Complete: exact provider-boundary checks and negative public/trace assertions |
 | Commit-before-notification interruption | R1: interrupt after commit and before acknowledgements in both gateways | Complete: preserved state, recovery time, two consumer acknowledgements and zero provider replay |
+| Admitted-turn interruption | R2: restart after durable admission but before commit in both gateways | Complete: failed/uncertain classification, no automatic provider replay, linked explicit retry and version attribution |
 
 Use the same campaign, input sequence, prompts, scripted responses/delays and persistence semantics.
 Record the environment, versions, traces, sample counts and ranges. Measure provider time separately
-from submit-to-confirm, dispatch, persistence, report lag and recovery. The six completed experiments
+from submit-to-confirm, dispatch, persistence, report lag and recovery. The seven completed experiments
 cover the selected risks above. Stale updates, partial reporting writes, concurrent load, duplicate
 delivery and additional storage/subscriber failure points remain follow-up scenarios rather than
 recorded experiment evidence. Use the completed workflow evidence without claiming a universal style

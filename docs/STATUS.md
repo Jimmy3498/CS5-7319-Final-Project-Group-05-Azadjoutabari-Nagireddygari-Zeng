@@ -29,12 +29,12 @@ and Streamlit pages; they differ in workflow coordination and connectors.
 - `tests/test_layered_turn.py::LayeredTurnTests.test_turn_commits_and_replays_after_reopening`
   exercises Layered restart catch-up without another model call; the same module also covers commit
   replay, invalid effects, uncertain outcomes, and linked retry.
-- Dedicated risk tests cover private-canary isolation through both gateways and controlled
-  commit-before-acknowledgement interruption/restart recovery in both architectures.
+- Dedicated risk tests cover private-canary isolation, admitted-but-uncommitted startup
+  classification and explicit retry, and commit-before-acknowledgement recovery in both gateways.
 - Provider tests verify all three supported request/response protocols against a local HTTP server.
 - Streamlit AppTest covers both entrypoints, authentication, campaign creation, API-card
   save/edit/delete, and start-playthrough navigation without duplicate sessions.
-- November 16 combined verification on Windows: 106 tests passed with one expected
+- November 16 combined verification on Windows: 108 tests passed with one expected
   symlink-privilege skip. Ruff, formatting, compilation, structural, public-tree, wiring,
   isolated-build, extracted-demo, localhost-provider, and Streamlit checks pass.
 - No live external-provider request is made by the automated suite.
