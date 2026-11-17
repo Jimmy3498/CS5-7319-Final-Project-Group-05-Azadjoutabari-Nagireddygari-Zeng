@@ -5,13 +5,22 @@ from shared.models.ai import ProviderProfile
 from shared.models.common import SecretInput
 from shared.queries import Query, QueryKind
 
-from .common import UIContext, consume_completed, query, require_account, submit
+from .common import UIContext, clear_operation, consume_completed, query, require_account, submit
 
 
 def profiles(ui: UIContext) -> None:
     st.header("Private API cards")
     if require_account(ui) is None:
         return
+
+    # Apply completed selections before creating the widget that owns this key.
+    saved = consume_completed(ui, "profiles.save")
+    if isinstance(saved, ProviderProfile):
+        st.session_state["ui.profiles.selected"] = saved.id
+    consume_completed(ui, "profiles.delete")
+    if st.session_state.get("ui.profiles.delete.handled_operation_id"):
+        st.session_state["ui.profiles.selected"] = None
+        clear_operation("profiles.delete")
 
     cards = query(ui, Query(QueryKind.PROVIDER_CARDS))
     if cards is None:
@@ -110,9 +119,6 @@ def profiles(ui: UIContext) -> None:
                 SecretInput(credential) if credential else None,
             ),
         )
-    saved = consume_completed(ui, "profiles.save")
-    if isinstance(saved, ProviderProfile):
-        st.session_state["ui.profiles.selected"] = saved.id
         st.rerun()
 
     if selected is None:
@@ -154,10 +160,7 @@ def profiles(ui: UIContext) -> None:
                     replacement if selected.id == active_id else None,
                 ),
             )
-    deleted = consume_completed(ui, "profiles.delete")
-    if deleted is not None or st.session_state.get("ui.profiles.delete.handled_operation_id"):
-        st.session_state["ui.profiles.selected"] = None
-        st.rerun()
+            st.rerun()
 
     st.caption(
         "Keys are stored outside SQLite in the configured OS credential vault. "

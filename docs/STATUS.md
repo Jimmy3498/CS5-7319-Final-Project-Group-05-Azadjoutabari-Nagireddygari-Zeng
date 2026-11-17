@@ -1,6 +1,6 @@
 # Implementation status
 
-## MVP implementation checkpoint — November 15, 2026
+## MVP implementation checkpoint — November 16, 2026
 
 The proposal's author-and-play MVP is implemented through both architecture gateways. The two
 applications share domain rules, DTOs, SQLite repositories, provider adapters, credential storage,
@@ -16,7 +16,7 @@ and Streamlit pages; they differ in workflow coordination and connectors.
 | Event-Based | Queued staged editor and gameplay workflows with opaque private state and independent subscribers |
 | Persistence | SQLite drafts, versions, sessions, attempts, commits, checkpoints, notices, reports, and proposals |
 | Reporting | Attempt counts, false-to-true milestone hits, denominators, freshness, idempotent catch-up |
-| Retry/recovery | Explicit linked retry; committed-notice replay after restart without provider replay |
+| Retry/recovery | Explicit linked retry; interrupted attempts marked failed on startup; committed-notice replay without provider replay |
 | Campaign updates | Conservative field-aware three-way preview and atomic opt-in adoption with checkpoint |
 | Providers | OpenAI-compatible (including hosted Meta models), Anthropic Messages, and Google Gemini adapters |
 | API cards | Per-account cards; keys stored in the OS credential vault and never in SQLite |
@@ -28,11 +28,26 @@ and Streamlit pages; they differ in workflow coordination and connectors.
   subscribers, milestone projection, and restart recovery without another model call.
 - Layered gameplay tests cover commit replay, invalid effects, uncertain outcomes, and linked retry.
 - Provider tests verify all three supported request/response protocols against a local HTTP server.
-- Streamlit AppTest renders both entrypoints and exercises authentication and campaign creation.
-- Final verification: 94 tests pass with one Windows symlink-privilege skip; Ruff, formatting,
-  compilation, structural, public-tree, wiring, isolated-build, and Streamlit checks pass.
+- Streamlit AppTest covers both entrypoints, authentication, campaign creation, API-card
+  save/edit/delete, and start-playthrough navigation without duplicate sessions.
+- November 16 stabilization verification on macOS: 102 tests passed with no skips.
+  Ruff, formatting, structural, public-tree, and wiring checks passed; the suite includes
+  isolated builds, extracted-demo launches, and localhost provider tests.
 - No live external-provider request is made by the automated suite.
 
 The A3 real-credential portion remains a manual environment check because automated tests must not
 contain or spend a user's provider credentials. Marketplace/payments, multiplayer, custom-PC
 creation, arbitrary rulebook interpretation, and automatic conflict resolution remain outside MVP.
+
+## Stabilization fixes
+
+API-card selection and playthrough navigation now update before their Streamlit widgets
+are constructed. Startup fails abandoned running turns without changing saved gameplay
+or replaying provider calls. Run only one application host per database.
+
+### Historical version reports
+Attempts now retain their campaign version, and milestone eligibility uses recorded
+version membership. Schema v3 preserves existing data and recovers old completed-turn
+versions from durable receipts. Old unsuccessful attempts from sessions that visited
+multiple versions remain in all-version totals but are excluded from version-specific
+counts when their original version was not recorded.
