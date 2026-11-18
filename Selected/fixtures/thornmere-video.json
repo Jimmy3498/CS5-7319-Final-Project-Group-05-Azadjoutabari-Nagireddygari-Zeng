@@ -1,0 +1,715 @@
+{
+  "schema": "cs7319.demo-campaign.v1",
+  "status": "Video-demo variant; validate and import into a new owned campaign.",
+  "provenance": {
+    "source_name": "ST Workbench fixtures/world-state/medieval-wedding-murder.json",
+    "source_sha256": "b916bb5d0816d7a1312627d3a7ae35d835037e039d2f36b41827f15a0417c454",
+    "changes": [
+      "Compact entity set and explicit field visibility",
+      "School typed schema, closed conditions and milestones",
+      "New witness-seal template for genuine runtime creation",
+      "Private spoiler canary for negative tests",
+      "Expanded video-demo prose and public canon; character records use the selection/edit form. Existing IDs, access labels, conditions, stat values, item caps and milestones retained."
+    ],
+    "authorship": "AI-assisted synthetic campaign adaptation",
+    "baseline_fixture_sha256": "b99e45cb019f482e3f6fb40585e566b13497fb7b35a12463b3e83d90ef5023cb"
+  },
+  "draft": {
+    "id": "thornmere-demo",
+    "owner_id": "fixture-author-not-a-real-account",
+    "revision": 0,
+    "content": {
+      "title": "The Thornmere Wedding — Video Demo",
+      "summary": "A winter wedding, a collapsed guest, and three rooms full of uncertain loyalties. Play Rowan Vale: follow a clue, distinguish private knowledge from public evidence, and preserve what you discover.",
+      "background": {
+        "id": "background",
+        "title": "Background",
+        "text": "The Thornmere household has gathered for a winter wedding. Snow presses against the courtyard gates, the road beyond the estate is impassable, and the guests must remain together until the storm eases. The Great Hall is warm with candles, evergreen garlands and the remains of a formal supper. A public toast has just ended in alarm: Edric, one of the guests, has collapsed. The cause is not publicly established. A silver wedding chalice remains in the hall.\n\nYou play Rowan Vale, an invited guest with a family connection rather than an official investigator. Mara Ashdown, Brother Tomas and Cedric Fen are also in the hall. The adjoining Antechamber offers a quiet writing desk; a separate Service Passage connects the hall to the household's working spaces. Move between these three locations, examine what is actually available, and decide what to pursue. People may hold private information or repeat hearsay. Neither confidence nor an accusation makes a statement proven.",
+        "access": {
+          "visibility": "public",
+          "character_ids": []
+        },
+        "reveal_when": null,
+        "stance": "authored_fact",
+        "holder_id": null
+      },
+      "opening": {
+        "id": "opening",
+        "title": "Opening",
+        "text": "You are Rowan Vale. Moments ago the wedding toast filled the Great Hall with raised glasses; now a chair lies askew beside Edric, and every conversation has broken off. Candlelight flickers across an engraved silver chalice. Mara stands near the supper table, Tomas holds a folded cloth between his hands, and Cedric smooths a cuff that needs no attention.\n\nThe storm rattles the windows. To one side, the Antechamber door stands open; another doorway leads into the Service Passage. No one has publicly established what happened. You can stay with the guests, take a closer look at the chalice, or step into an adjoining room. What do you do?",
+        "access": {
+          "visibility": "public",
+          "character_ids": []
+        },
+        "reveal_when": null,
+        "stance": "authored_fact",
+        "holder_id": null
+      },
+      "world": {
+        "canon": [
+          {
+            "id": "public-premise",
+            "title": "Public Premise",
+            "text": "At the winter wedding, Edric has collapsed following the toast. The cause and culprit are not publicly known. An account from a guest may be a claim or hearsay; it is not automatically objective evidence.",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "reveal_when": null,
+            "stance": "authored_fact",
+            "holder_id": null
+          },
+          {
+            "id": "chalice-clue",
+            "title": "Chalice Clue",
+            "text": "A bitter-almond scent lingers inside the chalice when Rowan examines it closely while holding it. The observation warrants further questions; by itself it does not publicly identify who handled the cup.",
+            "access": {
+              "visibility": "director",
+              "character_ids": []
+            },
+            "reveal_when": {
+              "kind": "owns_item",
+              "target_id": "wedding-chalice",
+              "expected": true
+            },
+            "stance": "authored_fact",
+            "holder_id": null
+          },
+          {
+            "id": "public-room-map",
+            "title": "The three-room map",
+            "text": "The Great Hall connects to the Antechamber and the Service Passage. The two side rooms have no direct connection. Heavy snow has made the road from the household impassable.",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "reveal_when": null,
+            "stance": "authored_fact",
+            "holder_id": null
+          },
+          {
+            "id": "public-inquiry-boundary",
+            "title": "The first inquiry",
+            "text": "The household needs a careful first account of the collapse. Possessing an object does not prove its history, and an observation is not a verdict. Rowan can gather evidence without promising to solve the entire mystery tonight.",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "reveal_when": null,
+            "stance": "authored_fact",
+            "holder_id": null
+          },
+          {
+            "id": "public-witness-seal",
+            "title": "Desk supplies",
+            "text": "The Antechamber contains ordinary paper, sealing wax and a simple seal press. The remaining wax is enough for one witness seal, not an unlimited supply. These materials are for recording the inquiry, not magical evidence.",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "reveal_when": null,
+            "stance": "authored_fact",
+            "holder_id": null
+          }
+        ],
+        "characters": [
+          {
+            "id": "rowan",
+            "name": "Rowan Vale",
+            "playable": true,
+            "location_id": "great-hall",
+            "appearance": {
+              "id": "rowan-appearance",
+              "title": "Rowan Appearance",
+              "text": "A charcoal winter coat, a loosened formal collar and a narrow silver clasp mark Rowan as a guest who dressed carefully but never felt entirely at home in the ceremony. Snowmelt darkens the hem; empty hands are held visibly away from the supper table.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "expression_style": {
+              "id": "rowan-manner",
+              "title": "Rowan Manner",
+              "text": "Use measured first-person dialogue and short, concrete questions. Rowan is the player: address the player as 'you'; never describe Rowan as a separate companion. Do not invent the player's consent, conclusions or next action.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personality": {
+              "id": "rowan-personality",
+              "title": "Rowan Personality",
+              "text": "Observant and deliberate. Rowan prefers a precise question to an accusation and notices when a confident statement outruns its evidence. Family loyalty creates pressure, but it does not determine the player's decisions. Rowan's choices belong to the player.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "rowan"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personal_history": {
+              "id": "rowan-history",
+              "title": "Rowan History",
+              "text": "Rowan accepted the invitation because of a longstanding connection to the Thornmere family. Before the toast there was time for ordinary conversation, not a complete view of every guest's movements. Rowan begins without knowing who caused the collapse.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "rowan"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "knowledge": [],
+            "stats": [
+              {
+                "id": "rowan-composure",
+                "name": "Composure",
+                "value": 60,
+                "minimum": 0,
+                "maximum": 100,
+                "access": {
+                  "visibility": "character",
+                  "character_ids": [
+                    "rowan"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "mara",
+            "name": "Mara Ashdown",
+            "playable": false,
+            "location_id": "great-hall",
+            "appearance": {
+              "id": "mara-appearance",
+              "title": "Mara Appearance",
+              "text": "Mara wears a deep-green dress beneath a practical wool shawl. One hand rests against the supper table; the other grips the shawl's fringe. Her gaze moves between Edric and the doors rather than settling on the people speaking.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "expression_style": {
+              "id": "mara-manner",
+              "title": "Mara Manner",
+              "text": "Direct, economical sentences. Ask what someone actually saw, not what they assume. When worried, Mara repeats a practical question rather than giving a long speech.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personality": {
+              "id": "mara-personality",
+              "title": "Mara Personality",
+              "text": "Mara is protective of the household and impatient with spectacle. She wants useful action, but concern for the family's reputation can make her sound guarded. Guardedness is not proof of guilt.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "mara"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personal_history": {
+              "id": "mara-history",
+              "title": "Mara History",
+              "text": "A family acquaintance who helped make the guests feel welcome earlier in the evening. Mara knows Rowan well enough to ask for discretion, although that familiarity does not give Rowan automatic access to her private thoughts.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "mara"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "knowledge": [],
+            "stats": [
+              {
+                "id": "mara-composure",
+                "name": "Composure",
+                "value": 60,
+                "minimum": 0,
+                "maximum": 100,
+                "access": {
+                  "visibility": "character",
+                  "character_ids": [
+                    "mara"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "tomas",
+            "name": "Brother Tomas",
+            "playable": false,
+            "location_id": "great-hall",
+            "appearance": {
+              "id": "tomas-appearance",
+              "title": "Tomas Appearance",
+              "text": "Brother Tomas wears a travel-worn dark robe and sturdy boots still dusted with snow. He keeps a clean folded cloth in both hands. His expression is composed, but he pauses whenever several guests speak at once.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "expression_style": {
+              "id": "tomas-manner",
+              "title": "Tomas Manner",
+              "text": "Quiet, qualified language: distinguish 'I saw' from 'I heard.' Attribute reports to their speaker when known. Never promote Tomas's private hearsay into the player's established knowledge.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personality": {
+              "id": "tomas-personality",
+              "title": "Tomas Personality",
+              "text": "Patient and careful about the distinction between witnessing and hearing. Tomas dislikes turning rumor into an accusation. He may hesitate because he wants to be accurate, not because every hesitation conceals a plot.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "tomas"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personal_history": {
+              "id": "tomas-history",
+              "title": "Tomas History",
+              "text": "Tomas arrived as a wedding guest and a familiar presence to several members of the household. He moved among conversations before the toast, but no one person saw everything that happened.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "tomas"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "knowledge": [
+              {
+                "id": "tomas-private-report",
+                "title": "Tomas Private Report",
+                "text": "Tomas privately heard a report of a quarrel before the toast. He did not witness the quarrel himself and has not established who was involved or whether it is connected to Edric's collapse. This is hearsay, not proof.",
+                "access": {
+                  "visibility": "character",
+                  "character_ids": [
+                    "tomas"
+                  ]
+                },
+                "reveal_when": null,
+                "stance": "hearsay",
+                "holder_id": "tomas"
+              }
+            ],
+            "stats": [
+              {
+                "id": "tomas-composure",
+                "name": "Composure",
+                "value": 60,
+                "minimum": 0,
+                "maximum": 100,
+                "access": {
+                  "visibility": "character",
+                  "character_ids": [
+                    "tomas"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "cedric",
+            "name": "Cedric Fen",
+            "playable": false,
+            "location_id": "great-hall",
+            "appearance": {
+              "id": "cedric-appearance",
+              "title": "Cedric Appearance",
+              "text": "Cedric wears a fitted burgundy waistcoat and polished boots. He stands a little apart from the others, adjusting one cuff with elaborate care. His expression suggests an effort to keep the occasion orderly despite the overturned chair.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "expression_style": {
+              "id": "cedric-manner",
+              "title": "Cedric Manner",
+              "text": "Polished, courteous phrases with occasional evasive qualifications. Avoid unsolicited confessions. Keep private knowledge private unless an authored disclosure rule actually authorizes its release.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personality": {
+              "id": "cedric-personality",
+              "title": "Cedric Personality",
+              "text": "Controlled, status-conscious and uncomfortable with direct scrutiny. Cedric tries to guide conversations toward matters he can manage. This personality is author knowledge, not an automatic clue visible to Rowan.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "cedric"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "personal_history": {
+              "id": "cedric-history",
+              "title": "Cedric History",
+              "text": "Cedric is a guest with established ties to the household and a strong interest in how others judge him. His public attendance at the wedding explains his presence, but not his private conduct.",
+              "access": {
+                "visibility": "character",
+                "character_ids": [
+                  "cedric"
+                ]
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "knowledge": [
+              {
+                "id": "cedric-private-secret",
+                "title": "Cedric Private Secret",
+                "text": "SPOILER-CANARY-CEDRIC: Cedric tampered with the chalice. This is private authored knowledge, not a public accusation and not information Rowan begins with. No automatic confession or disclosure is authorized.",
+                "access": {
+                  "visibility": "character",
+                  "character_ids": [
+                    "cedric"
+                  ]
+                },
+                "reveal_when": null,
+                "stance": "authored_fact",
+                "holder_id": "cedric"
+              }
+            ],
+            "stats": [
+              {
+                "id": "cedric-composure",
+                "name": "Composure",
+                "value": 60,
+                "minimum": 0,
+                "maximum": 100,
+                "access": {
+                  "visibility": "character",
+                  "character_ids": [
+                    "cedric"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "locations": [
+          {
+            "id": "great-hall",
+            "name": "Thornmere Great Hall",
+            "description": {
+              "id": "great-hall-description",
+              "title": "Great Hall Description",
+              "text": "Long tables divide the candlelit Great Hall. Evergreen garlands hang from the beams, and the remains of the wedding supper crowd the linen. Edric's collapse has left a chair askew and the guests unsettled. The silver wedding chalice is still here. The Antechamber opens off one side of the hall; the Service Passage has a separate doorway. Snow taps against the tall windows beyond the tables.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "connected_location_ids": [
+              "antechamber",
+              "service-passage"
+            ]
+          },
+          {
+            "id": "antechamber",
+            "name": "Antechamber",
+            "description": {
+              "id": "antechamber-description",
+              "title": "Antechamber Description",
+              "text": "A quieter side room with a small writing desk, coat hooks and shutters that tremble in the wind. Paper, sealing wax and a simple seal press offer a place to record an observation. Melted candle wax has collected beside an unfinished seating list. Coats hang against the wall, leaving the corners in shadow. The doorway opens back into the Great Hall.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "connected_location_ids": [
+              "great-hall"
+            ]
+          },
+          {
+            "id": "service-passage",
+            "name": "Service Passage",
+            "description": {
+              "id": "service-passage-description",
+              "title": "Service Passage Description",
+              "text": "A narrow stone passage carries the smells of cooling food and damp wool. Shelves hold folded linen and empty serving trays; a low lamp throws long shadows across the flagstones. Voices from the hall arrive softened by the doorway. There is no direct door into the Antechamber: the route returns through the Great Hall.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "connected_location_ids": [
+              "great-hall"
+            ]
+          }
+        ],
+        "item_templates": [
+          {
+            "id": "dagger-template",
+            "name": "Ceremonial Wedding Dagger",
+            "description": {
+              "id": "dagger-template-description",
+              "title": "Dagger Template Description",
+              "text": "A small ceremonial wedding dagger with a polished, decorative blade and a worn grip. A narrow ribbon is tied near the handle. Its ceremonial appearance gives no reliable answer about who last handled it or why it was put aside.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "spawn_when": null,
+            "max_instances_per_session": 1
+          },
+          {
+            "id": "chalice-template",
+            "name": "Silver Wedding Chalice",
+            "description": {
+              "id": "chalice-template-description",
+              "title": "Chalice Template Description",
+              "text": "An engraved silver wedding chalice from the interrupted toast. Tiny vines surround the household crest, and candlelight catches along the rim. It is substantial enough to hold securely in one hand.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "spawn_when": null,
+            "max_instances_per_session": 1
+          },
+          {
+            "id": "seal-template",
+            "name": "Witness Seal",
+            "description": {
+              "id": "seal-template-description",
+              "title": "Seal Template Description",
+              "text": "A wax witness seal made from the Antechamber desk supplies, bearing the simple impression of the desk's seal press. Once cooled, it forms a small token that Rowan can carry with the inquiry's observations.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "spawn_when": {
+              "kind": "at_location",
+              "target_id": "antechamber",
+              "expected": true
+            },
+            "max_instances_per_session": 1
+          }
+        ],
+        "items": [
+          {
+            "id": "hidden-dagger",
+            "template_id": "dagger-template",
+            "holder_id": null,
+            "location_id": "antechamber",
+            "access": {
+              "visibility": "director",
+              "character_ids": []
+            },
+            "discover_when": {
+              "kind": "at_location",
+              "target_id": "antechamber",
+              "expected": true
+            }
+          },
+          {
+            "id": "wedding-chalice",
+            "template_id": "chalice-template",
+            "holder_id": null,
+            "location_id": "great-hall",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "discover_when": null
+          }
+        ],
+        "relationships": [
+          {
+            "id": "rowan-mara",
+            "source_id": "rowan",
+            "target_id": "mara",
+            "label": "Cooperating guests",
+            "description": {
+              "id": "rowan-mara-description",
+              "title": "Rowan Mara Description",
+              "text": "Rowan and Mara know one another through the household. Familiarity allows direct questions, but trust is not unconditional and does not grant access to private thoughts. Their relationship can provide emotional context without dictating either person's choices.",
+              "access": {
+                "visibility": "public",
+                "character_ids": []
+              },
+              "reveal_when": null,
+              "stance": "authored_fact",
+              "holder_id": null
+            },
+            "stats": [
+              {
+                "id": "rowan-mara-trust",
+                "name": "Trust",
+                "value": 50,
+                "minimum": 0,
+                "maximum": 100,
+                "access": {
+                  "visibility": "director",
+                  "character_ids": []
+                }
+              }
+            ]
+          }
+        ],
+        "flags": [
+          {
+            "id": "inquiry-complete",
+            "label": "First inquiry complete",
+            "initial": false,
+            "set_when": {
+              "kind": "owns_item",
+              "target_id": "wedding-chalice",
+              "expected": true
+            },
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            }
+          }
+        ],
+        "narrative_rules": [
+          {
+            "id": "rule-player-agency",
+            "title": "Rule Player Agency",
+            "text": "The player is Rowan Vale. Use 'you' for Rowan, not for an invented observer accompanying Rowan. Do not invent unchosen movement, pickups, disclosures or conclusions. Describe only effects that survived validation; an attempted action is not automatically successful.",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "reveal_when": null,
+            "stance": "authored_fact",
+            "holder_id": null
+          },
+          {
+            "id": "rule-tone",
+            "title": "Rule Tone",
+            "text": "Maintain a grounded, contained winter mystery. Use a few specific sensory details, then leave room for the next player decision. Distinguish observed facts, attributed claims and hearsay. Do not expose private character knowledge or invent new exits, evidence or inventory.",
+            "access": {
+              "visibility": "public",
+              "character_ids": []
+            },
+            "reveal_when": null,
+            "stance": "authored_fact",
+            "holder_id": null
+          }
+        ],
+        "stat_bands": [
+          {
+            "stat_id": "rowan-composure",
+            "minimum": 0,
+            "maximum": 40,
+            "text": "Unsettled"
+          },
+          {
+            "stat_id": "rowan-composure",
+            "minimum": 40,
+            "maximum": 100,
+            "text": "Steady"
+          }
+        ],
+        "milestones": [
+          {
+            "id": "entered-antechamber",
+            "label": "Visited the Antechamber",
+            "condition": {
+              "kind": "at_location",
+              "target_id": "antechamber",
+              "expected": true
+            },
+            "definition_fingerprint": "f3e711f98fa1782a16e74ec80a521f44ff518dd06e8baa9f12a5093232e2d2a7"
+          },
+          {
+            "id": "held-chalice",
+            "label": "Acquired the chalice",
+            "condition": {
+              "kind": "owns_item",
+              "target_id": "wedding-chalice",
+              "expected": true
+            },
+            "definition_fingerprint": "dfdd9c44e3a00b97879cd5033113b3884923aff124a2fa5156fdab37d7d01ebf"
+          },
+          {
+            "id": "finished-inquiry",
+            "label": "Closed the first inquiry",
+            "condition": {
+              "kind": "flag_equals",
+              "target_id": "inquiry-complete",
+              "expected": true
+            },
+            "definition_fingerprint": "82037d31786b5c141ffafccefc91ced673361576279c977c3fd09c9669d781cb"
+          }
+        ]
+      }
+    }
+  }
+}

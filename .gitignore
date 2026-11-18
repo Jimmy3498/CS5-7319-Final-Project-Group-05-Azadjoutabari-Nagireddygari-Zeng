@@ -9,7 +9,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
-.streamlit/secrets.toml
+**/.streamlit/secrets.toml
 *.db
 *.db-*
 *.sqlite
@@ -18,5 +18,5 @@ __pycache__/
 .DS_Store
 coverage.xml
 htmlcov/
-.streamlit/*
-!.streamlit/config.toml
+**/.streamlit/*
+!**/.streamlit/config.toml

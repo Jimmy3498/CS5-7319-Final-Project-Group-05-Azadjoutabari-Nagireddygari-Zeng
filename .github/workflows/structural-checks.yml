@@ -10,21 +10,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -r requirements-dev.txt
-      - run: ruff check .
-      - run: ruff format --check .
-      - run: python scripts/check_scaffold.py
-      - run: python scripts/check_public_tree.py
-      - run: python -m unittest discover -s tests -v
+      - run: python -m pip install -r Others/requirements-dev.txt
+      - run: ruff check --config Others/pyproject.toml .
+      - run: ruff format --check --config Others/pyproject.toml .
+      - run: python Others/run_checks.py
   build:
     needs: structural
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        architecture: [layered, event_based]
+        include:
+          - architecture: layered
+            folder: Selected
+          - architecture: event_based
+            folder: Unselected
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: python -m ${{ matrix.architecture }}.build
+        working-directory: ${{ matrix.folder }}
